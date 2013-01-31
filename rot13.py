@@ -7,7 +7,14 @@ def main(input_string):
             continue
         rot = (n + 14) % 26
         out += chr(rot + ord('a'))
-    print out
+    return out
+
+def loop():
+    try:
+        while True:
+            print main("you.just.lost.the.game")
+    except KeyboardInterrupt:
+        print "Finished"
 
 if __name__ == "__main__":
     import sys
