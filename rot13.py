@@ -5,7 +5,7 @@ def main(input_string):
         if n < 0 or n >= 26:
             out += c
             continue
-        rot = (n + 14) % 26
+        rot = (n + 13) % 26
         out += chr(rot + ord('a'))
     return out
 
