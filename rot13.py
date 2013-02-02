@@ -9,12 +9,6 @@ def main(input_string):
         out += chr(rot + ord('a'))
     return out
 
-def loop():
-    try:
-        while True:
-            print main("you.just.lost.the.game")
-    except KeyboardInterrupt:
-        print "Finished"
 
 if __name__ == "__main__":
     import sys
