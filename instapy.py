@@ -29,12 +29,10 @@ class Reloader(threading.Thread):
         self._loop()
 
     def _do_update(self):
-        print "Updating"
         for k, v in self.main_function.func_globals.items():
             if k != "__builtins__":
                 if isinstance(v, types.ModuleType):
                     self.main_function.func_globals[k] = reload(v)
-                    print "%s, %s" % (k, isinstance(v, types.ModuleType))
 
     def update(self):
         self.updated = True
