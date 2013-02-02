@@ -1,5 +1,6 @@
 import instapy
 import watcher
+import time
 import test_funcs
 
 if __name__ == "__main__":
@@ -11,6 +12,6 @@ if __name__ == "__main__":
     r.start()
     try:
         while True:
-            pass
+            time.sleep(1)
     except KeyboardInterrupt:
         pass
