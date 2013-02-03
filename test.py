@@ -1,10 +1,12 @@
 import instapy
 import watcher
 import time
-import test_funcs
+
+import ball
+
 
 if __name__ == "__main__":
-    r = instapy.Reloader(test_funcs.test_rot13)
+    r = instapy.Reloader(ball.do_frame, ball.init, ball.init_once)
     handler = watcher.Notifier(r)
     o = watcher.Observer()
     o.schedule(handler, path='.', recursive=True)

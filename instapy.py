@@ -42,12 +42,12 @@ class CachedReloader(object):
 
 
 class Reloader(threading.Thread):
-    def __init__(self, main_function, a=None, kwa=None, *args, **kwargs):
+    def __init__(self, main_function, init_function, init_once=None, *args, **kwargs):
         super(Reloader, self).__init__(*args, **kwargs)
         self._n_reloads = 0
-        self.args = a or tuple()
-        self.kwargs = kwa or dict()
         self.main_function = main_function
+        self.init_function = init_function
+        self.init_once = init_once
         self.daemon = True
         self.updated = False
         self.running = False
@@ -58,21 +58,38 @@ class Reloader(threading.Thread):
             if self.updated:
                 self._do_update()
                 self.updated = False
-            self.main_function(*self.args, **self.kwargs)
-        print "Thread exit"
+            self.main_function(*(self.init_args + self.args))
 
     def run(self):
         self.running = True
+        if self.init_once:
+            self.init_args = self.init_once()
+        else:
+            self.init_args = ()
+        self.args = self.init_function()
         self._loop()
+        print "Thread exit"
 
     def _do_update(self):
+        print "Updating"
+        # Tell the reloader to flush its cache
         self._cached_reloader.new_generation()
+
+        # Reload the main function
         m = reload(inspect.getmodule(self.main_function))
         self.main_function = m.__getattribute__(self.main_function.__name__)
+
+        # Reload the initialisation arguments
+        n = reload(inspect.getmodule(self.init_function))
+        self.init_function = n.__getattribute__(self.init_function.__name__)
+        self.args = self.init_function()
+
+        # Reload the rest
         for k, v in self.main_function.func_globals.items():
             if k != "__builtins__":
                 if isinstance(v, types.ModuleType):
-                    self.main_function.func_globals[k] = self._cached_reloader.get_module(v)
+                    if not v.__name__.startswith("pygame"):
+                        self.main_function.func_globals[k] = self._cached_reloader.get_module(v)
                 elif isinstance(v, types.FunctionType):
                     m = self._cached_reloader.get_module(inspect.getmodule(v))
                     new_v = m.__getattribute__(v.__name__)
