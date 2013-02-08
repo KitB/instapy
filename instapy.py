@@ -5,6 +5,8 @@ import inspect
 import types
 import collections
 import re
+import traceback
+import time
 
 
 class CachedReloader(object):
@@ -100,3 +102,83 @@ class Reloader(threading.Thread):
 
     def update(self):
         self.updated = True
+
+
+class Looper(object):
+    """ Mostly unnecessary at the moment
+        Provides default methods, gives future potential for modifying class
+        behaviours """
+    def init_once(self):
+        pass
+
+    def init(self):
+        pass
+
+    def loop_body(self):
+        pass
+
+
+class LooperReloader(threading.Thread):
+    def __init__(self, looper, *args, **kwargs):
+        super(LooperReloader, self).__init__(*args, **kwargs)
+        self._n_reloads = 0
+        self.daemon = True
+        self.updated = False
+        self.running = False
+        self.looper = looper
+        self._cached_reloader = CachedReloader()
+
+    def update(self):
+        self.updated = True
+
+    def run(self):
+        self.running = True
+        self.looper.init_once()
+        self.looper.init()
+        self._loop()
+        print "Thread exit"
+
+    def _do_update(self):
+        print "Updating"
+        # Tell the reloader to flush its cache
+        self._cached_reloader.new_generation()
+
+        # Reload the looper class
+        m = reload(inspect.getmodule(self.looper))
+        lc = m.__getattribute__(self.looper.__class__.__name__)
+        lc_instance = lc()
+
+        # Reload the main function
+        self.looper.loop_body = lc.loop_body.__get__(self.looper, lc)
+
+        # Reload the initialisation arguments
+        lc_instance.init()
+        for name, value in vars(lc_instance).items():
+            if inspect.isroutine(value):
+                if inspect.getsource(value) != inspect.getsource(vars(self.looper)[name]):
+                    self.looper.__dict__[name] = value
+            else:
+                if value != vars(self.looper)[name]:
+                    self.looper.__dict__[name] = value
+
+        # Reload the rest
+        for k, v in self.looper.loop_body.func_globals.items():
+            if k != "__builtins__":
+                if isinstance(v, types.ModuleType):
+                    if not v.__name__.startswith("pygame"):
+                        self.looper.loop_body.func_globals[k] = self._cached_reloader.get_module(v)
+                elif isinstance(v, types.FunctionType):
+                    m = self._cached_reloader.get_module(inspect.getmodule(v))
+                    new_v = m.__getattribute__(v.__name__)
+                    self.looper.loop_body.func_globals[k] = new_v
+
+    def _loop(self):
+        while self.running:
+            try:
+                if self.updated:
+                    self.updated = False
+                    self._do_update()
+                self.looper.loop_body()
+            except Exception, e:
+                traceback.print_exc()
+                time.sleep(5)
