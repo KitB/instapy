@@ -1,31 +1,42 @@
 import pygame
+import instapy
 
 from math import cos, sin, tan, fmod
 import time
 
 
-def init_once():
-    pygame.init()
-    screen = pygame.display.set_mode((640, 640))
-    clock = pygame.time.Clock()
+class Game(instapy.Looper):
+    def init_once(self):
+        pygame.init()
+        self.screen = pygame.display.set_mode((640, 640))
+        self.clock = pygame.time.Clock()
 
-    return (screen, clock)
+    def init(self):
+        # Some colours
+        self.yellow = (0, 0, 0)
 
-bg = [255, 0, 0]
+        self.ball_pos = (100, 500)
+        self.radius = 100
 
-def init():
-    global ball_pos
-    # Some colours
-    black = (0, 0, 0)
-    purple = (255, 50, 80)
+    def loop_body(self):
+        t = time.time() * 1.5
+        self.black = ((sin(t) * 28) + 127, 255 - ((sin(t) * 28) + 127), (cos(t) * 28) + 127)
+        self.purple = ((cos(t) * 128) + 127, (sin(t) * 128) + 127, 255 - ((sin(t) * 128) + 127))
 
-    yellow = (0, 0, 0)
+        (x, y) = self.ball_pos
+        #x = (sin(t) * 320) + 320
+        #y = (cos(t) * 40) + 240
+        x = (x + 2) % 640
+        self.ball_pos = (x, y)
 
-    ball_pos = (100, 100)
-    radius = 100
+        p1 = make_pos((x, y))
+        p2 = make_pos((640 - x, 480 - y))
 
-    return (black, purple, yellow, ball_pos, radius)
+        self.screen.fill(self.black)
+        draw(self.screen, self.black, self.purple, p1, rad(p1, self.radius))
 
+        pygame.display.flip()
+        self.clock.tick(60)
 
 def darken((R, G, B)):
     """ Make a colour a little darker """
@@ -37,7 +48,7 @@ def invert((R, G, B)):
 
 
 def draw(screen, black, purple, ball_pos, radius):
-    pygame.draw.circle(screen, purple, ball_pos, radius + 5) 
+    pygame.draw.circle(screen, purple, ball_pos, radius + 5)
     pygame.draw.circle(screen, darken(purple), ball_pos, radius)
 
 def rad((x, y), radius):
@@ -46,25 +57,19 @@ def rad((x, y), radius):
 def make_pos((x, y)):
     return int(round(x)), int(round(y))
 
-def do_frame(screen, clock, black, purple, yellow, ball_pos, radius):
-    t = time.time() * 1.5
-    black = ((sin(t) * 28) + 127, 255 - ((sin(t) * 28) + 127), (cos(t) * 28) + 127)
-    purple = ((cos(t) * 128) + 127, (sin(t) * 128) + 127, 255 - ((sin(t) * 128) + 127))
+if __name__ == "__main__":
+    import instapy
+    import watcher
+    import time
 
-    (x, y) = ball_pos
-    x = (sin(t) * 320) + 320
-    y = (cos(t) * 40) + 240
-
-    p1 = make_pos((x, y))
-    p2 = make_pos((640 - x, 480 - y))
-    p3 = make_pos((640 - y, 480 - x))
-    p4 = make_pos((y, x))
-
-    screen.fill(black)
-    draw(screen, black, purple, p1, rad(p1, radius))
-    draw(screen, black, invert(purple), p2, rad(p2, radius))
-    #draw(screen, black, invert(purple), p3, rad(p3, radius) / 2)
-    #draw(screen, black, invert(purple), p4, rad(p4, radius) / 2)
-
-    pygame.display.flip()
-    clock.tick(60)
+    r = instapy.LooperReloader(Game())
+    handler = watcher.Notifier(r)
+    o = watcher.Observer()
+    o.schedule(handler, path='.', recursive=True)
+    o.start()
+    r.start()
+    try:
+        while True:
+            time.sleep(1)
+    except KeyboardInterrupt:
+        pass
