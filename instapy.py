@@ -147,19 +147,33 @@ class LooperReloader(threading.Thread):
         m = reload(inspect.getmodule(self.looper))
         lc = m.__getattribute__(self.looper.__class__.__name__)
         lc_instance = lc()
+        old_lc_instance = self.looper.__class__()
 
         # Reload the main function
         self.looper.loop_body = lc.loop_body.__get__(self.looper, lc)
 
         # Reload the initialisation arguments
         lc_instance.init()
+        old_lc_instance.init()
         for name, value in vars(lc_instance).items():
             if inspect.isroutine(value):
-                if inspect.getsource(value) != inspect.getsource(vars(self.looper)[name]):
+                try:
+                    if inspect.getsource(value) != inspect.getsource(vars(old_lc_instance)[name]):
+                        self.looper.__dict__[name] = value
+                except KeyError:
+                    # New function
+                    print "KeyError"
                     self.looper.__dict__[name] = value
             else:
-                if value != vars(self.looper)[name]:
+                try:
+                    if value != vars(old_lc_instance)[name]:
+                        print name + " " + str(value) + ", " + str(vars(old_lc_instance)[name])
+                        self.looper.__dict__[name] = value
+                except KeyError:
+                    # The property is a new one
+                    print "property KeyError"
                     self.looper.__dict__[name] = value
+        self.looper.__class__ = lc
 
         # Reload the rest
         for k, v in self.looper.loop_body.func_globals.items():

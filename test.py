@@ -2,11 +2,11 @@ import instapy
 import watcher
 import time
 
-import ball
+import bouncing
 
 
 if __name__ == "__main__":
-    r = instapy.Reloader(ball.do_frame, ball.init, ball.init_once)
+    r = instapy.LooperReloader(bouncing.Game())
     handler = watcher.Notifier(r)
     o = watcher.Observer()
     o.schedule(handler, path='.', recursive=True)
