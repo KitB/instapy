@@ -55,10 +55,13 @@ class Reloader(threading.Thread):
 
     def _loop(self):
         while self.running:
-            if self.updated:
-                self._do_update()
-                self.updated = False
-            self.main_function(*(self.init_args + self.args))
+            try:
+                if self.updated:
+                    self._do_update()
+                    self.updated = False
+                self.main_function(*(self.init_args + self.args))
+            except:
+                print "Exception raised"
 
     def run(self):
         self.running = True
