@@ -192,7 +192,8 @@ class LooperReloader(threading.Thread):
                 if self.updated:
                     self.updated = False
                     self._do_update()
-                self.looper.loop_body()
+                if self.looper.loop_body():
+                    self.running = False
             except Exception, e:
                 traceback.print_exc()
                 time.sleep(5)
