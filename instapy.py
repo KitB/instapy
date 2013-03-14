@@ -42,68 +42,6 @@ class CachedReloader(object):
         else:
             return module.__name__
 
-
-class Reloader(threading.Thread):
-    def __init__(self, main_function, init_function, init_once=None, *args, **kwargs):
-        super(Reloader, self).__init__(*args, **kwargs)
-        self._n_reloads = 0
-        self.main_function = main_function
-        self.init_function = init_function
-        self.init_once = init_once
-        self.daemon = True
-        self.updated = False
-        self.running = False
-        self._cached_reloader = CachedReloader()
-
-    def _loop(self):
-        while self.running:
-            try:
-                if self.updated:
-                    self._do_update()
-                    self.updated = False
-                self.main_function(*(self.init_args + self.args))
-            except:
-                print "Exception raised"
-
-    def run(self):
-        self.running = True
-        if self.init_once:
-            self.init_args = self.init_once()
-        else:
-            self.init_args = ()
-        self.args = self.init_function()
-        self._loop()
-        print "Thread exit"
-
-    def _do_update(self):
-        print "Updating"
-        # Tell the reloader to flush its cache
-        self._cached_reloader.new_generation()
-
-        # Reload the main function
-        m = reload(inspect.getmodule(self.main_function))
-        self.main_function = m.__getattribute__(self.main_function.__name__)
-
-        # Reload the initialisation arguments
-        n = reload(inspect.getmodule(self.init_function))
-        self.init_function = n.__getattribute__(self.init_function.__name__)
-        self.args = self.init_function()
-
-        # Reload the rest
-        for k, v in self.main_function.func_globals.items():
-            if k != "__builtins__":
-                if isinstance(v, types.ModuleType):
-                    if not v.__name__.startswith("pygame"):
-                        self.main_function.func_globals[k] = self._cached_reloader.get_module(v)
-                elif isinstance(v, types.FunctionType):
-                    m = self._cached_reloader.get_module(inspect.getmodule(v))
-                    new_v = m.__getattribute__(v.__name__)
-                    self.main_function.func_globals[k] = new_v
-
-    def update(self):
-        self.updated = True
-
-
 class Looper(object):
     """ Mostly unnecessary at the moment
         Provides default methods, gives future potential for modifying class
