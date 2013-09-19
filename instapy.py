@@ -1,46 +1,44 @@
 import imp
 import threading
-import sys
 import inspect
 import types
-import collections
-import re
 import traceback
 import time
 
 
+def load_module(name):
+    """Return an imported module without filling sys.modules."""
+    (module_file, p, description) = imp.fine_module(name)
+    module = imp.new_module(name)
+    exec module_file in module.__dict__
+    return module
+
+
 class CachedReloader(object):
+    """Provides a cached import mechanism.
+
+       Allows the programmer to reset this cache between "generations"
+    """
     def __init__(self):
-        self._n_reloads = 0
-        self._d = dict()
+        self._modules = dict()
 
     def new_generation(self):
-        del self._d
-        self._d = dict()
+        """Reset the cache."""
+        del self._modules
+        self._modules = dict()
 
     def get_module(self, str_or_module):
+        """Either import and return a module or get it from the dictionary."""
         if isinstance(str_or_module, basestring):
             try:
-                return self._d[str_or_module]
+                return self._modules[str_or_module]
             except KeyError:
-                m = self._load_module(str_or_module)
-                self._d[str_or_module] = m
-                return m
+                module = load_module(str_or_module)
+                self._modules[str_or_module] = module
+                return module
         elif isinstance(str_or_module, types.ModuleType):
-            return self.get_module(self._get_module_name(str_or_module))
+            return self.get_module(str_or_module.__name__)
 
-    def _load_module(self, import_str):
-        self._n_reloads += 1
-        suffix = "_reloaded_%d_times" % self._n_reloads
-        return imp.load_module(import_str + suffix, *imp.find_module(import_str))
-
-    def _get_module_name(self, module):
-        suffix_re = re.compile("^(.*)_reloaded_[0-9]+_times$")
-        m = suffix_re.match(module.__name__)
-        if m:
-            return m.group(1)
-        else:
-            return module.__name__
 
 class Looper(object):
     """ Mostly unnecessary at the moment
@@ -59,7 +57,6 @@ class Looper(object):
 class LooperReloader(threading.Thread):
     def __init__(self, looper, *args, **kwargs):
         super(LooperReloader, self).__init__(*args, **kwargs)
-        self._n_reloads = 0
         self.daemon = True
         self.updated = False
         self.running = False
