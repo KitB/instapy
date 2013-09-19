@@ -4,6 +4,7 @@ import inspect
 import types
 import traceback
 import time
+import logging
 
 
 def load_module(name):
@@ -71,10 +72,10 @@ class LooperReloader(threading.Thread):
         self.looper.init_once()
         self.looper.init()
         self._loop()
-        print "Thread exit"
+        logging.info("Thread exit")
 
     def _do_update(self):
-        print "Updating"
+        logging.debug("Updating")
         # Tell the reloader to flush its cache
         self._cached_reloader.new_generation()
 
@@ -93,20 +94,24 @@ class LooperReloader(threading.Thread):
         for name, value in vars(lc_instance).items():
             if inspect.isroutine(value):
                 try:
-                    if inspect.getsource(value) != inspect.getsource(vars(old_lc_instance)[name]):
+                    if inspect.getsource(value)\
+                       != inspect.getsource(vars(old_lc_instance)[name]):
                         self.looper.__dict__[name] = value
                 except KeyError:
                     # New function
-                    print "KeyError"
+                    logging.debug("KeyError")
                     self.looper.__dict__[name] = value
+            elif isinstance(value, types.InstanceType):
+                # TODO: implement this
+                pass
             else:
                 try:
                     if value != vars(old_lc_instance)[name]:
-                        print name + " " + str(value) + ", " + str(vars(old_lc_instance)[name])
+                        logging.debug("%s %s, %s", name, value, vars(old_lc_instance)[name])
                         self.looper.__dict__[name] = value
                 except KeyError:
                     # The property is a new one
-                    print "property KeyError"
+                    logging.debug("property KeyError")
                     self.looper.__dict__[name] = value
         self.looper.__class__ = lc
 
@@ -115,11 +120,14 @@ class LooperReloader(threading.Thread):
             if k != "__builtins__":
                 if isinstance(v, types.ModuleType):
                     if not v.__name__.startswith("pygame"):
-                        self.looper.loop_body.func_globals[k] = self._cached_reloader.get_module(v)
+                        self.looper.loop_body.func_globals[k] =\
+                            self._cached_reloader.get_module(v)
                 elif isinstance(v, types.FunctionType):
                     m = self._cached_reloader.get_module(inspect.getmodule(v))
                     new_v = m.__getattribute__(v.__name__)
                     self.looper.loop_body.func_globals[k] = new_v
+                elif isinstance(v, types.InstanceType):
+                    logging.debug("object")
 
     def _loop(self):
         while self.running:
@@ -129,6 +137,6 @@ class LooperReloader(threading.Thread):
                     self._do_update()
                 if self.looper.loop_body():
                     self.running = False
-            except Exception, e:
+            except Exception:
                 traceback.print_exc()
                 time.sleep(5)
