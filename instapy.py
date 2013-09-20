@@ -9,7 +9,7 @@ import logging
 
 def load_module(name):
     """Return an imported module without filling sys.modules."""
-    (module_file, p, description) = imp.fine_module(name)
+    (module_file, p, description) = imp.find_module(name)
     module = imp.new_module(name)
     exec module_file in module.__dict__
     return module
