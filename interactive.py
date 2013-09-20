@@ -21,7 +21,7 @@ class Game(instapy.Looper):
         self.purple = (116, 4, 181)
         self.ball_pos = (120, 120)
         self.ball_velocity = (800, -400)
-        self.gravity = -00
+        self.gravity = 900
         self.jump = 900
         self.move = 900
         self.friction = 0.8
@@ -64,7 +64,6 @@ class Game(instapy.Looper):
             elif self.stick:
                 self.ball_velocity[0] = 0
 
-
     def handle_events(self):
         for event in pygame.event.get():
             if event.type == KEYDOWN:
@@ -86,7 +85,6 @@ class Game(instapy.Looper):
                 if not keys[K_SPACE]:
                     self.stick = False
 
-
     def loop_body(self):
         self.handle_events()
         self.update_ball()
@@ -105,5 +103,3 @@ def draw(screen, ball_pos, purple, radius):
     pos = [int(round(n)) for n in ball_pos]
     pygame.gfxdraw.filled_circle(screen, pos[0], pos[1], radius, purple)
     pygame.gfxdraw.filled_circle(screen, pos[0], pos[1], radius - 5, darken(purple))
-
-
