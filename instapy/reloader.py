@@ -7,16 +7,30 @@ import time
 import logging
 
 
-def load_module(name):
+def load_module(fqname):
     """Return an imported module without filling sys.modules."""
-    print "Loading module %s" % name
-    (module_file, p, description) = imp.find_module(name)
+    name, path = get_dotted_path(fqname)
+
+    (module_file, p, description) = imp.find_module(name, [path])
+
     if module_file is None:
         # Module was a package, we need to get __init__.py for that package
         (module_file, p, description) = imp.find_module('__init__', [p])
-    module = imp.new_module(name)
+
+    module = imp.new_module(fqname)
     exec module_file in module.__dict__
+
     return module
+
+
+def get_dotted_path(name):
+    parts = name.split('.')
+    head = parts[-1]
+    tail = parts[:-1]
+
+    path = '/'.join(tail)
+
+    return head, path
 
 
 class CachedReloader(object):
