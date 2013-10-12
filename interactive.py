@@ -3,10 +3,10 @@
 import pygame
 import pygame.gfxdraw
 from pygame.locals import *
-import instapy
+from instapy import reloader
 
 
-class Game(instapy.Looper):
+class Game(reloader.Looper):
     def __init__(self, *args, **kwargs):
         self.done = False
 
