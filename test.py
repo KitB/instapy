@@ -16,9 +16,12 @@ if __name__ == "__main__":
     try:
         while True:
             if not r.is_alive():
-                o.stop()
-                o.join()
                 break
             time.sleep(1)
     except KeyboardInterrupt:
         pass
+    finally:
+        r.running = False
+        o.stop()
+        o.join()
+        r.join()
