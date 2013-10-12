@@ -1,5 +1,6 @@
 import imp
 import inspect
+import ipdb
 import logging
 import threading
 import time
@@ -80,12 +81,13 @@ class Looper(object):
 
 
 class Reloader(threading.Thread):
-    def __init__(self, looper, *args, **kwargs):
+    def __init__(self, looper, debug_on_exception=True, *args, **kwargs):
         super(Reloader, self).__init__(*args, **kwargs)
         self.daemon = True
         self.updated = False
         self.running = False
         self.looper = looper
+        self.debug_on_exception = debug_on_exception
         self._cached_reloader = CachedReloader()
 
     def update(self):
@@ -163,4 +165,7 @@ class Reloader(threading.Thread):
                     self.running = False
             except Exception:
                 traceback.print_exc()
-                time.sleep(5)
+                if self.debug_on_exception:
+                    ipdb.set_trace()
+                else:
+                    time.sleep(5)

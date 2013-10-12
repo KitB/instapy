@@ -6,3 +6,4 @@ ipython==0.13.1
 pathtools==0.1.2
 watchdog==0.6.0
 wsgiref==0.1.2
+ipdb==0.8
