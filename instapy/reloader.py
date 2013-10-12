@@ -1,23 +1,29 @@
 import imp
-import threading
 import inspect
-import types
-import traceback
-import time
 import logging
+import threading
+import time
+import traceback
+import types
 
 
 def load_module(fqname):
     """Return an imported module without filling sys.modules."""
     name, path = get_dotted_path(fqname)
 
-    (module_file, p, description) = imp.find_module(name, [path])
+    try:
+        (module_file, p, description) = imp.find_module(name, [path])
+    except ImportError:
+        (module_file, p, description) = imp.find_module(name)
 
     if module_file is None:
+        if description[2] == imp.C_BUILTIN:
+            return imp.init_builtin(fqname)
         # Module was a package, we need to get __init__.py for that package
         (module_file, p, description) = imp.find_module('__init__', [p])
 
     module = imp.new_module(fqname)
+    module.__file__ = module_file.name
     exec module_file in module.__dict__
 
     return module
