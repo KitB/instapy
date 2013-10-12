@@ -9,7 +9,11 @@ import logging
 
 def load_module(name):
     """Return an imported module without filling sys.modules."""
+    print "Loading module %s" % name
     (module_file, p, description) = imp.find_module(name)
+    if module_file is None:
+        # Module was a package, we need to get __init__.py for that package
+        (module_file, p, description) = imp.find_module('__init__', [p])
     module = imp.new_module(name)
     exec module_file in module.__dict__
     return module
@@ -55,9 +59,9 @@ class Looper(object):
         pass
 
 
-class LooperReloader(threading.Thread):
+class Reloader(threading.Thread):
     def __init__(self, looper, *args, **kwargs):
-        super(LooperReloader, self).__init__(*args, **kwargs)
+        super(Reloader, self).__init__(*args, **kwargs)
         self.daemon = True
         self.updated = False
         self.running = False
@@ -80,7 +84,7 @@ class LooperReloader(threading.Thread):
         self._cached_reloader.new_generation()
 
         # Reload the looper class
-        m = reload(inspect.getmodule(self.looper))
+        m = self._cached_reloader.get_module(inspect.getmodule(self.looper))
         lc = m.__getattribute__(self.looper.__class__.__name__)
         lc_instance = lc()
         old_lc_instance = self.looper.__class__()
