@@ -2,6 +2,8 @@ import importlib
 import sys
 import time
 
+import log_config
+
 from instapy import reloader
 from instapy import watcher
 from watchdog import observers
@@ -9,15 +11,16 @@ from watchdog import observers
 
 def get_looper(looper_string):
     (module_name, dot, cls_name) = looper_string.rpartition('.')
+    module_name = '.'.join(module_name.split('/'))
     module = importlib.import_module(module_name)
     cls = module.__dict__[cls_name]
     return cls()
 
 
-if __name__ == "__main__":
+def main(args):
     # We give a class as 'module.submodule.ClassName' and it'll run it. How
     # fancy!
-    looper = get_looper(sys.argv[1])
+    looper = get_looper(args[0])
     r = reloader.Reloader(looper)
     handler = watcher.Notifier(r)
     o = observers.Observer()
@@ -36,3 +39,6 @@ if __name__ == "__main__":
         o.stop()
         o.join()
         r.join()
+
+if __name__ == '__main__':
+    main(sys.argv[1:])
