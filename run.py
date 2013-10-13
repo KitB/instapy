@@ -18,7 +18,7 @@ if __name__ == "__main__":
     # We give a class as 'module.submodule.ClassName' and it'll run it. How
     # fancy!
     looper = get_looper(sys.argv[1])
-    r = reloader.LooperReloader(looper)
+    r = reloader.Reloader(looper)
     handler = watcher.Notifier(r)
     o = observers.Observer()
     o.schedule(handler, path='.', recursive=True)
