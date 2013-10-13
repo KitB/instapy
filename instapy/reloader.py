@@ -49,12 +49,16 @@ class CachedReloader(object):
     def __init__(self):
         # TODO: Just use the built in reload mechanism and keep generations by
         # copying sys.modules. Didn't work.
-        self._modules = dict()
+        self._generations = []  # TODO: Use a deque
+        self._generations.append(dict())
 
     def new_generation(self):
         """Reset the cache."""
-        del self._modules
-        self._modules = dict()
+        self._generations.append(dict())
+
+    @property
+    def _modules(self):
+        return self._generations[-1]
 
     def get_module(self, str_or_module):
         """Either import and return a module or get it from the dictionary."""
