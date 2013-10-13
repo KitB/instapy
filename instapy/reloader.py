@@ -2,6 +2,7 @@ import imp
 import inspect
 import ipdb
 import logging
+import sys
 import threading
 import time
 import traceback
@@ -46,6 +47,8 @@ class CachedReloader(object):
        Allows the programmer to reset this cache between "generations"
     """
     def __init__(self):
+        # TODO: Just use the built in reload mechanism and keep generations by
+        # copying sys.modules. Didn't work.
         self._modules = dict()
 
     def new_generation(self):
@@ -166,6 +169,6 @@ class Reloader(threading.Thread):
             except Exception:
                 traceback.print_exc()
                 if self.debug_on_exception:
-                    ipdb.set_trace()
+                    ipdb.post_mortem(sys.exc_info()[2])
                 else:
                     time.sleep(5)

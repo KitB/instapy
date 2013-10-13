@@ -3,7 +3,7 @@ from instapy import watcher
 from watchdog import observers
 import time
 
-import interactive
+from examples.no_objects import interactive
 
 
 if __name__ == "__main__":

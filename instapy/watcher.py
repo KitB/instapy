@@ -1,3 +1,4 @@
+import logging
 import time
 
 from watchdog import events
@@ -11,6 +12,7 @@ class Notifier(events.FileSystemEventHandler):
         self.reloader = reloader
 
     def on_modified(self, event):
+        logging.debug('Performing update')
         self.reloader.update()
 
 

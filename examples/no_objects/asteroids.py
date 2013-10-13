@@ -55,7 +55,7 @@ class Game(reloader.Looper):
 
         self.shape = (7, 10, 10)
 
-        self.turn_speed = math.pi
+        self.turn_speed = 3.14159
 
         self.velocity = (0, 0)
 
