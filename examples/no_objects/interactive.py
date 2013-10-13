@@ -1,5 +1,5 @@
 import pygame
-import instapy
+from instapy import reloader
 
 # Adding an import!
 from pygame.locals import KEYDOWN, K_w, K_s, K_a, K_d
@@ -10,7 +10,7 @@ white = (255, 255, 255)
 purple = (128, 0, 128)
 
 
-class Game(instapy.Looper):
+class Game(reloader.Looper):
     def init_once(self):
         pygame.init()
         self.screen = pygame.display.set_mode((640, 640))
