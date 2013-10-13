@@ -82,14 +82,13 @@ class Game(reloader.Looper):
     def handle_events(self):
         for event in pygame.event.get():
             if event.type == KEYDOWN:
-                keys = pygame.key.get_pressed()
-                if keys[K_w]:
+                if event.key == K_w:
                     self.ball_velocity[1] -= self.jump
-                if keys[K_s]:
+                elif event.key == K_s:
                     self.ball_velocity[1] += self.jump
-                if keys[K_a]:
+                elif event.key == K_a:
                     self.ball_velocity[0] -= self.move
-                if keys[K_d]:
+                elif event.key == K_d:
                     self.ball_velocity[0] += self.move
 
     def vertical_bounce(self):
