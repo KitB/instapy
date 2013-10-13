@@ -15,7 +15,7 @@ to acquire it by other means.
 
 Once you have the requirements installed (and ensuring you have the virtualenv
 enabled -- the `source ...` line in the above script does this) you can run
-`python test.py` to try out the interactive example. With this running, open
-`interactive.py` and try changing things (note that the `init_once` method
-is explicitly unmodifiable, so don't worry if you make changes in that and it
-doesn't work).
+`python run.py examples/no_objects/interactive.Game` to try out the interactive
+example. With this running, open `examples/no_objects/interactive.py` and try
+changing things (note that the `init_once` method is explicitly unmodifiable, so
+don't worry if you make changes in that and it doesn't work).

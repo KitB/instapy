@@ -11,6 +11,7 @@ from watchdog import observers
 
 def get_looper(looper_string):
     (module_name, dot, cls_name) = looper_string.rpartition('.')
+    # This will probably break on Windows machines.
     module_name = '.'.join(module_name.split('/'))
     module = importlib.import_module(module_name)
     cls = module.__dict__[cls_name]
