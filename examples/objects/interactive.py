@@ -1,6 +1,7 @@
 import pygame
-from pygame.locals import K_s, K_w, K_a, K_d, KEYDOWN, K_SPACE
-import instapy
+from pygame.locals import K_s, K_w, K_a, K_d, KEYDOWN, K_SPACE, MOUSEBUTTONDOWN,\
+                          MOUSEBUTTONUP, MOUSEMOTION
+from instapy import reloader
 from math import sqrt
 
 
@@ -10,7 +11,7 @@ class Ball(object):
         self.old_pos = self.pos
         self.velocity = (0, 0)
         self.radius = r
-        self.purple = (188, 0, 198)
+        self.purple = (255, 255, 255)
 
         self.game = game
 
@@ -61,7 +62,7 @@ class Ball(object):
             self.velocity[0] = self.velocity[0] * -self.game.elasticity
 
 
-class Game(instapy.Looper):
+class Game(reloader.Looper):
     def init_once(self):
         pygame.init()
         self.screen = pygame.display.set_mode((640, 640))
@@ -102,16 +103,16 @@ class Game(instapy.Looper):
                 if keys[K_SPACE]:
                     self.gravity = -self.gravity
                     print "inverting"
-            #elif event.type == MOUSEBUTTONDOWN:
-            #    if vector_distance(event.pos, self.ball_pos) < self.radius:
-            #        self.mouse_moving = True
-            #elif event.type == MOUSEBUTTONUP:
-            #    if self.mouse_moving:
-            #        self.mouse_moving = False
-            #        self.mouse_done = True
-            #elif event.type == MOUSEMOTION:
-            #    if self.mouse_moving:
-            #        self.ball_pos = event.pos
+            elif event.type == MOUSEBUTTONDOWN:
+                if vector_distance(event.pos, self.ball.pos) < self.ball.radius:
+                    self.mouse_moving = True
+            elif event.type == MOUSEBUTTONUP:
+                if self.mouse_moving:
+                    self.mouse_moving = False
+                    self.mouse_done = True
+            elif event.type == MOUSEMOTION:
+                if self.mouse_moving:
+                    self.ball.pos = event.pos
 
     def loop_body(self):
         self.handle_events()
