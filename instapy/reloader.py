@@ -87,6 +87,11 @@ class Looper(object):
         pass
 
 
+class ObjectSet(object):
+    # TODO: Implement a object
+    pass
+
+
 class Reloader(threading.Thread):
     def __init__(self, looper, debug_on_exception=True, *args, **kwargs):
         super(Reloader, self).__init__(*args, **kwargs)
@@ -107,10 +112,46 @@ class Reloader(threading.Thread):
         self._loop()
         logging.info("Thread exit")
 
+    def _update_object(self, obj):
+        logging.debug("Updating (%s)" % obj)
+
+        m = self._cached_reloader.get_module(inspect.getmodule(obj))
+        cls = m.__getattribute__(obj.__class__.__name__)
+
+        obj.__class__ = cls
+
+        instance = cls()
+        old_instance = obj.__class__()
+
+        for name, value in vars(instance).items():
+            if inspect.isroutine(value):
+                try:
+                    if inspect.getsource(value)\
+                       != inspect.getsource(vars(old_instance)[name]):
+                        obj.__dict__[name] = value
+                except KeyError:
+                    # New function
+                    logging.debug("KeyError")
+                    obj.__dict__[name] = value
+            elif isinstance(value, types.InstanceType):
+                # TODO: implement this
+                self.objects_to_update.append(value)
+            else:
+                try:
+                    if value != vars(old_instance)[name]:
+                        logging.debug("%s %s, %s", name, value, vars(old_instance)[name])
+                        obj.__dict__[name] = value
+                except KeyError:
+                    # The property is a new one
+                    logging.debug("property KeyError")
+                    obj.__dict__[name] = value
+
     def _do_update(self):
         logging.debug("Updating")
         # Tell the reloader to flush its cache
         self._cached_reloader.new_generation()
+
+        self.objects_to_update = []
 
         # Reload the looper class
         m = self._cached_reloader.get_module(inspect.getmodule(self.looper))
@@ -136,7 +177,7 @@ class Reloader(threading.Thread):
                     self.looper.__dict__[name] = value
             elif isinstance(value, types.InstanceType):
                 # TODO: implement this
-                pass
+                self.objects_to_update.append(value)
             else:
                 try:
                     if value != vars(old_lc_instance)[name]:
@@ -160,7 +201,10 @@ class Reloader(threading.Thread):
                     new_v = m.__getattribute__(v.__name__)
                     self.looper.loop_body.func_globals[k] = new_v
                 elif isinstance(v, types.InstanceType):
-                    logging.debug("object")
+                    self.objects_to_update.append(v)
+
+        for obj in self.objects_to_update:
+            self._update_object(obj)
 
     def _loop(self):
         while self.running:
