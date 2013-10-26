@@ -6,7 +6,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>472</width>
+    <width>283</width>
     <height>52</height>
    </rect>
   </property>
@@ -25,11 +25,11 @@
      <rect>
       <x>0</x>
       <y>0</y>
-      <width>471</width>
+      <width>281</width>
       <height>51</height>
      </rect>
     </property>
-    <layout class="QHBoxLayout" name="horizontalLayout" stretch="0,1,1,1">
+    <layout class="QHBoxLayout" name="horizontalLayout" stretch="0,1">
      <property name="spacing">
       <number>5</number>
      </property>
@@ -130,20 +130,6 @@
        </property>
       </widget>
      </item>
-     <item>
-      <widget class="QPushButton" name="pushButton_2">
-       <property name="text">
-        <string>PushButton</string>
-       </property>
-      </widget>
-     </item>
-     <item>
-      <widget class="QPushButton" name="pushButton">
-       <property name="text">
-        <string>Exit</string>
-       </property>
-      </widget>
-     </item>
     </layout>
    </widget>
    <zorder>horizontalLayoutWidget</zorder>
@@ -151,22 +137,5 @@
   </widget>
  </widget>
  <resources/>
- <connections>
-  <connection>
-   <sender>pushButton</sender>
-   <signal>clicked()</signal>
-   <receiver>MainWindow</receiver>
-   <slot>close()</slot>
-   <hints>
-    <hint type="sourcelabel">
-     <x>439</x>
-     <y>55</y>
-    </hint>
-    <hint type="destinationlabel">
-     <x>251</x>
-     <y>55</y>
-    </hint>
-   </hints>
-  </connection>
- </connections>
+ <connections/>
 </ui>

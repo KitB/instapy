@@ -31,6 +31,9 @@ class Updater(object):
         self.observer = o
 
     def run(self):
+        # TODO: Make this quit when everything else quits
+        # Hard because the GUI library refuses to be on anything but the main
+        # thread. Primadonnas, eh?
         self.observer.start()
         self.reloader.start()
         try:
