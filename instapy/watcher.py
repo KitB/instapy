@@ -1,37 +1,19 @@
 import logging
-import time
 
 from watchdog import events
-from watchdog import observers
-from instapy import reloader
 
 
+# TODO: Unify naming of notifier (it is also known as handler and watcher,
+# unacceptable)
 class Notifier(events.FileSystemEventHandler):
     def __init__(self, reloader):
         super(Notifier, self).__init__()
         self.reloader = reloader
+        self.paused = False
 
     def on_modified(self, event):
-        logging.debug('Performing update')
-        self.reloader.update()
-
-
-def run_with_file_watcher(looper):
-    r = reloader.Reloader(looper)
-    handler = Notifier(r)
-    o = observers.Observer()
-    o.schedule(handler, path='.', recursive=True)
-    o.start()
-    r.start()
-    try:
-        while True:
-            if not r.is_alive():
-                break
-            time.sleep(1)
-    except KeyboardInterrupt:
-        pass
-    finally:
-        r.running = False
-        o.stop()
-        o.join()
-        r.join()
+        if not self.paused:
+            logging.debug('Performing update')
+            self.reloader.update()
+        else:
+            logging.debug('File modification detected but paused so no update.')

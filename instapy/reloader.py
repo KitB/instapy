@@ -8,6 +8,8 @@ import time
 import traceback
 import types
 
+import pygame
+
 
 def load_module(fqname):
     """Return an imported module without filling sys.modules."""
@@ -88,7 +90,7 @@ class Looper(object):
 
 
 class ObjectSet(object):
-    # TODO: Implement a object
+    # TODO: Implement a set that uses "is" for equality
     pass
 
 
@@ -139,7 +141,8 @@ class Reloader(threading.Thread):
             else:
                 try:
                     if value != vars(old_instance)[name]:
-                        logging.debug("%s %s, %s", name, value, vars(old_instance)[name])
+                        logging.debug("%s %s, %s", name, value,
+                                      vars(old_instance)[name])
                         obj.__dict__[name] = value
                 except KeyError:
                     # The property is a new one
@@ -181,7 +184,8 @@ class Reloader(threading.Thread):
             else:
                 try:
                     if value != vars(old_lc_instance)[name]:
-                        logging.debug("%s %s, %s", name, value, vars(old_lc_instance)[name])
+                        logging.debug("%s %s, %s", name, value,
+                                      vars(old_lc_instance)[name])
                         self.looper.__dict__[name] = value
                 except KeyError:
                     # The property is a new one
@@ -217,6 +221,8 @@ class Reloader(threading.Thread):
             except Exception:
                 traceback.print_exc()
                 if self.debug_on_exception:
+                    pygame.event.set_grab(False)
+                    pygame.mouse.set_visible(True)
                     ipdb.post_mortem(sys.exc_info()[2])
                 else:
                     time.sleep(5)
