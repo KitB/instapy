@@ -1,11 +1,7 @@
 import importlib
-import sys
 
-from watchdog import observers
-
-from instapy import gui
 from instapy import reloader
-from instapy import watcher
+from instapy import server
 
 
 def get_looper(looper_string):
@@ -20,28 +16,16 @@ def get_looper(looper_string):
 class Updater(object):
     def __init__(self, args):
         looper = get_looper(args[0])
-        r = reloader.Reloader(looper)
-        handler = watcher.Notifier(r)
-        o = observers.Observer()
-        o.schedule(handler, path='.', recursive=True)
+        self.reloader = reloader.Reloader(looper)
 
-        self.looper = looper
-        self.reloader = r
-        self.watcher = handler
-        self.observer = o
+        self.server = server.Server(self.reloader)
 
     def run(self):
-        # TODO: Make this quit when everything else quits
-        # Hard because the GUI library refuses to be on anything but the main
-        # thread. Primadonnas, eh?
-        self.observer.start()
         self.reloader.start()
+        self.server.start()
+
         try:
-            gui.main(sys.argv, self.watcher)
+            self.reloader.join()
         except KeyboardInterrupt:
-            pass
-        finally:
             self.reloader.running = False
-            self.observer.stop()
-            self.observer.join()
             self.reloader.join()
