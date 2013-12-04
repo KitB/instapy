@@ -4,9 +4,7 @@ import log_config  # noqa
 
 from instapy import execution
 
-
-def main(*args):
-    execution.gui_main(*args)
+main = execution.gui_main
 
 if __name__ == '__main__':
     main(*sys.argv[1:])
