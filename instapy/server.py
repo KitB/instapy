@@ -1,4 +1,3 @@
-#!/usr/bin/env python
 import SimpleXMLRPCServer as sxmls
 import threading
 import xmlrpclib
@@ -22,6 +21,7 @@ class Server(threading.Thread):
         self.server.register_function(self.reloader.update, 'update')
 
         self.daemon = True
+        self.name = "Server Thread"
 
     def run(self):
         logging.debug('Listening to %s on port %d' % self.address)

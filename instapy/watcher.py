@@ -12,6 +12,7 @@ def begin_auto_update(reloader):
     """
     handler = Handler(reloader)
     observer = observers.Observer()
+    observer.name = "File watching thread"
     observer.schedule(handler, path='.', recursive=True)
     observer.start()
     return handler

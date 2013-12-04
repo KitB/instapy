@@ -100,6 +100,7 @@ class Reloader(threading.Thread):
         self.daemon = True
         self.updated = False
         self.running = False
+        self.name = "Game Thread"
         self.looper = looper
         self.debug_on_exception = debug_on_exception
         self._cached_reloader = CachedReloader()
