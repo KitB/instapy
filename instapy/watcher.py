@@ -1,13 +1,25 @@
 import logging
 
 from watchdog import events
+from watchdog import observers
 
 
-# TODO: Unify naming of notifier (it is also known as handler and watcher,
-# unacceptable)
-class Notifier(events.FileSystemEventHandler):
+def begin_auto_update(reloader):
+    """ Spawns a thread that will automatically perform the update on save.
+
+        Returns:
+            The handler object in use e.g. to pass into the GUI
+    """
+    handler = Handler(reloader)
+    observer = observers.Observer()
+    observer.schedule(handler, path='.', recursive=True)
+    observer.start()
+    return handler
+
+
+class Handler(events.FileSystemEventHandler):
     def __init__(self, reloader):
-        super(Notifier, self).__init__()
+        super(Handler, self).__init__()
         self.reloader = reloader
         self.paused = False
 

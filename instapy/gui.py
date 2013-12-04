@@ -5,31 +5,29 @@ from PySide import QtGui
 import basic_ui
 
 
-# TODO: Stop interacting directly with the notifier; add a socket interface and
-# communicate over that
 class MainWindow(QtGui.QMainWindow, basic_ui.Ui_MainWindow):
-    def __init__(self, notifier, parent=None):
+    def __init__(self, handler, parent=None):
         super(MainWindow, self).__init__(parent)
         self.setupUi(self)
         self.updateToggle.valueChanged.connect(self.change_update)
         self.updateNow.clicked.connect(self.do_update)
-        self.notifier = notifier
+        self.handler = handler
 
     def change_update(self, n):
         if n == 0:  # Manual update
             self.updateNow.setEnabled(True)
-            self.notifier.paused = True
+            self.handler.paused = True
         else:  # Automatic update
             self.updateNow.setEnabled(False)
-            self.notifier.paused = False
+            self.handler.paused = False
 
     def do_update(self):
-        self.notifier.reloader.update()
+        self.handler.reloader.update()
 
 
-def main(args, notifier=None):
+def main(args, handler=None):
     app = QtGui.QApplication(args)
-    window = MainWindow(notifier)
+    window = MainWindow(handler)
     window.show()
 
     return_code = app.exec_()

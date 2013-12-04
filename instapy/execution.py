@@ -1,7 +1,10 @@
 import importlib
+import sys
 
+from instapy import gui
 from instapy import reloader
 from instapy import server
+from instapy import watcher
 
 
 def get_game_instance(game_instance_string):
@@ -11,6 +14,12 @@ def get_game_instance(game_instance_string):
     module = importlib.import_module(module_name)
     cls = module.__dict__[cls_name]
     return cls()
+
+
+def gui_main(host=server.DEFAULT_HOST, port=server.DEFAULT_PORT):
+    proxy = server.get_reloader_proxy('http://%s:%d' % (host, port))
+    handler = watcher.begin_auto_update(proxy)
+    gui.main(sys.argv, handler)
 
 
 def main(game_instance_string):
