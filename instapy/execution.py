@@ -4,8 +4,8 @@ from instapy import reloader
 from instapy import server
 
 
-def get_looper(looper_string):
-    (module_name, dot, cls_name) = looper_string.rpartition('.')
+def get_game_instance(game_instance_string):
+    (module_name, dot, cls_name) = game_instance_string.rpartition('.')
     # This will probably break on Windows machines.
     module_name = '.'.join(module_name.split('/'))
     module = importlib.import_module(module_name)
@@ -13,19 +13,21 @@ def get_looper(looper_string):
     return cls()
 
 
-class Updater(object):
-    def __init__(self, args):
-        looper = get_looper(args[0])
-        self.reloader = reloader.Reloader(looper)
+def main(game_instance_string):
+    game_instance = get_game_instance(game_instance_string)
+    run_game(game_instance)
 
-        self.server = server.Server(self.reloader)
 
-    def run(self):
-        self.reloader.start()
-        self.server.start()
+def run_game(game_instance):
+    game_reloader = reloader.Reloader(game_instance)
 
-        try:
-            self.reloader.join()
-        except KeyboardInterrupt:
-            self.reloader.running = False
-            self.reloader.join()
+    reloader_server = server.Server(game_reloader)
+
+    game_reloader.start()
+    reloader_server.start()
+
+    try:
+        game_reloader.join()
+    except KeyboardInterrupt:
+        game_reloader.running = False
+        game_reloader.join()
