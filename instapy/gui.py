@@ -5,6 +5,8 @@ from PySide import QtGui
 import basic_ui
 
 
+# TODO: Stop interacting directly with the notifier; add a socket interface and
+# communicate over that
 class MainWindow(QtGui.QMainWindow, basic_ui.Ui_MainWindow):
     def __init__(self, notifier, parent=None):
         super(MainWindow, self).__init__(parent)
