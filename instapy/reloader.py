@@ -184,7 +184,7 @@ class Reloader(threading.Thread):
                     self.looper.__dict__[name] = value
             elif isinstance(value, types.InstanceType):
                 # TODO: implement this
-                self.objects_to_update.append(value)
+                logging.debug(value)
             else:
                 try:
                     if value != vars(old_lc_instance)[name]:
@@ -209,7 +209,7 @@ class Reloader(threading.Thread):
                     new_v = m.__getattribute__(v.__name__)
                     self.looper.loop_body.func_globals[k] = new_v
                 elif isinstance(v, types.InstanceType):
-                    self.objects_to_update.append(v)
+                    logging.debug(value)
 
         for obj in self.objects_to_update:
             self._update_object(obj)
