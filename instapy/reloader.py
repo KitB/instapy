@@ -108,6 +108,7 @@ class Reloader(threading.Thread):
         super(Reloader, self).__init__(*args, **kwargs)
         self.daemon = True
         self.updated = False
+        self.restarted = False
         self.running = False
         self.name = "Game Thread"
         self.looper = looper
@@ -117,6 +118,9 @@ class Reloader(threading.Thread):
     def update(self):
         self.updated = True
 
+    def restart(self):
+        self.restarted = True
+
     def run(self):
         with inject.ReplacedContext():
             self.running = True
@@ -124,6 +128,26 @@ class Reloader(threading.Thread):
             self.looper.init()
             self._loop()
         logging.info("Reloader finished")
+
+    def _loop(self):
+        while self.running:
+            try:
+                if self.updated:
+                    self.updated = False
+                    self._do_update()
+                if self.restarted:
+                    self.restarted = False
+                    self.looper.init()
+                if self.looper.loop_body():
+                    self.running = False
+            except Exception:
+                traceback.print_exc()
+                if self.debug_on_exception:
+                    pygame.event.set_grab(False)
+                    pygame.mouse.set_visible(True)
+                    ipdb.post_mortem(sys.exc_info()[2])
+                else:
+                    time.sleep(5)
 
     def _update_object(self, current, old_initial, new_initial):
         logging.debug("Updating (%s)" % current)
@@ -230,20 +254,3 @@ class Reloader(threading.Thread):
 
         for stuff in self.objects_to_update:
             self._update_object(*stuff)
-
-    def _loop(self):
-        while self.running:
-            try:
-                if self.updated:
-                    self.updated = False
-                    self._do_update()
-                if self.looper.loop_body():
-                    self.running = False
-            except Exception:
-                traceback.print_exc()
-                if self.debug_on_exception:
-                    pygame.event.set_grab(False)
-                    pygame.mouse.set_visible(True)
-                    ipdb.post_mortem(sys.exc_info()[2])
-                else:
-                    time.sleep(5)
