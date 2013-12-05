@@ -19,6 +19,7 @@ class Server(threading.Thread):
         self.server = sxmls.SimpleXMLRPCServer((host, port),
                                                allow_none=True)
         self.server.register_function(self.reloader.update, 'update')
+        self.server.register_function(self.reloader.restart, 'restart')
 
         self.daemon = True
         self.name = "Server Thread"

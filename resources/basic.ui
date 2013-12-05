@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>283</width>
-    <height>52</height>
+    <width>363</width>
+    <height>48</height>
    </rect>
   </property>
   <property name="sizePolicy">
@@ -25,11 +25,11 @@
      <rect>
       <x>0</x>
       <y>0</y>
-      <width>281</width>
-      <height>51</height>
+      <width>361</width>
+      <height>45</height>
      </rect>
     </property>
-    <layout class="QHBoxLayout" name="horizontalLayout" stretch="0,1">
+    <layout class="QHBoxLayout" name="horizontalLayout" stretch="0,1,0">
      <property name="spacing">
       <number>5</number>
      </property>
@@ -130,10 +130,15 @@
        </property>
       </widget>
      </item>
+     <item>
+      <widget class="QPushButton" name="restartNow">
+       <property name="text">
+        <string>Restart Now</string>
+       </property>
+      </widget>
+     </item>
     </layout>
    </widget>
-   <zorder>horizontalLayoutWidget</zorder>
-   <zorder>label_3</zorder>
   </widget>
  </widget>
  <resources/>

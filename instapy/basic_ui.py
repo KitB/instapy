@@ -2,8 +2,8 @@
 
 # Form implementation generated from reading ui file 'resources/basic.ui'
 #
-# Created: Sat Oct 26 15:37:39 2013
-#      by: pyside-uic 0.2.13 running on PySide 1.1.1
+# Created: Thu Dec  5 21:19:27 2013
+#      by: pyside-uic 0.2.14 running on PySide 1.1.2
 #
 # WARNING! All changes made in this file will be lost!
 
@@ -12,7 +12,7 @@ from PySide import QtCore, QtGui
 class Ui_MainWindow(object):
     def setupUi(self, MainWindow):
         MainWindow.setObjectName("MainWindow")
-        MainWindow.resize(283, 52)
+        MainWindow.resize(363, 48)
         sizePolicy = QtGui.QSizePolicy(QtGui.QSizePolicy.Fixed, QtGui.QSizePolicy.Fixed)
         sizePolicy.setHorizontalStretch(0)
         sizePolicy.setVerticalStretch(0)
@@ -21,7 +21,7 @@ class Ui_MainWindow(object):
         self.centralwidget = QtGui.QWidget(MainWindow)
         self.centralwidget.setObjectName("centralwidget")
         self.horizontalLayoutWidget = QtGui.QWidget(self.centralwidget)
-        self.horizontalLayoutWidget.setGeometry(QtCore.QRect(0, 0, 281, 51))
+        self.horizontalLayoutWidget.setGeometry(QtCore.QRect(0, 0, 361, 45))
         self.horizontalLayoutWidget.setObjectName("horizontalLayoutWidget")
         self.horizontalLayout = QtGui.QHBoxLayout(self.horizontalLayoutWidget)
         self.horizontalLayout.setSpacing(5)
@@ -66,6 +66,9 @@ class Ui_MainWindow(object):
         self.updateNow.setCheckable(False)
         self.updateNow.setObjectName("updateNow")
         self.horizontalLayout.addWidget(self.updateNow)
+        self.restartNow = QtGui.QPushButton(self.horizontalLayoutWidget)
+        self.restartNow.setObjectName("restartNow")
+        self.horizontalLayout.addWidget(self.restartNow)
         self.horizontalLayout.setStretch(1, 1)
         MainWindow.setCentralWidget(self.centralwidget)
         self.label_3.setBuddy(self.updateToggle)
@@ -81,4 +84,5 @@ class Ui_MainWindow(object):
         self.label_2.setText(QtGui.QApplication.translate("MainWindow", "Manual", None, QtGui.QApplication.UnicodeUTF8))
         self.label.setText(QtGui.QApplication.translate("MainWindow", "Automatic", None, QtGui.QApplication.UnicodeUTF8))
         self.updateNow.setText(QtGui.QApplication.translate("MainWindow", "Update Now", None, QtGui.QApplication.UnicodeUTF8))
+        self.restartNow.setText(QtGui.QApplication.translate("MainWindow", "Restart Now", None, QtGui.QApplication.UnicodeUTF8))
 
