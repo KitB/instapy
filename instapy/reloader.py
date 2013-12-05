@@ -45,6 +45,13 @@ def get_dotted_path(name):
     return head, path
 
 
+def is_user_class(obj):
+    cls = obj.__class__
+    if hasattr(cls, '__class__'):
+        return ('__dict__' in dir(cls) or hasattr(cls, '__slots__'))
+    return False
+
+
 class CachedReloader(object):
     """Provides a cached import mechanism.
 
@@ -118,42 +125,45 @@ class Reloader(threading.Thread):
             self._loop()
         logging.info("Reloader finished")
 
-    def _update_object(self, obj):
-        logging.debug("Updating (%s)" % obj)
+    def _update_object(self, current, old_initial, new_initial):
+        logging.debug("Updating (%s)" % current)
 
-        m = self._cached_reloader.get_module(inspect.getmodule(obj))
-        cls = m.__getattribute__(obj.__class__.__name__)
+        m = self._cached_reloader.get_module(inspect.getmodule(current))
+        cls = m.__getattribute__(current.__class__.__name__)
 
-        obj.__class__ = cls
+        current.__class__ = cls
 
-        instance = cls()
-        old_instance = obj.__class__()
-
-        for name, value in vars(instance).items():
+        for name, value in vars(new_initial).items():
             if inspect.isroutine(value):
                 try:
                     if inspect.getsource(value)\
-                       != inspect.getsource(vars(old_instance)[name]):
-                        obj.__dict__[name] = value
+                       != inspect.getsource(vars(old_initial)[name]):
+                        current.__dict__[name] = value
                 except KeyError:
                     # New function
                     logging.debug("KeyError")
-                    obj.__dict__[name] = value
-            elif isinstance(value, types.InstanceType):
-                # TODO: implement this
-                self.objects_to_update.append(value)
+                    current.__dict__[name] = value
+            elif is_user_class(value):
+                current_sub = getattr(current, name)
+                old_initial_sub = getattr(old_initial, name)
+                new_initial_sub = value
+                self.objects_to_update.append(
+                    (current_sub, old_initial_sub, new_initial_sub))
             else:
                 try:
-                    if value != vars(old_instance)[name]:
+                    if value != getattr(old_initial, name):
                         logging.debug("%s %s, %s", name, value,
-                                      vars(old_instance)[name])
-                        obj.__dict__[name] = value
+                                      getattr(old_initial, name))
+                        current.__dict__[name] = value
                 except KeyError:
                     # The property is a new one
                     logging.debug("property KeyError")
-                    obj.__dict__[name] = value
+                    current.__dict__[name] = value
 
     def _do_update(self):
+        # TODO: Unify the update methods for looper instance and other objects
+        # TODO: Replace the init method with an __init__ method; replace
+        #       init_once with __init_once__
         logging.debug("Updating")
         # Tell the reloader to flush its cache
         self._cached_reloader.new_generation()
@@ -182,9 +192,14 @@ class Reloader(threading.Thread):
                     # New function
                     logging.debug("KeyError")
                     self.looper.__dict__[name] = value
-            elif isinstance(value, types.InstanceType):
+            elif is_user_class(value):
                 # TODO: implement this
                 logging.debug(value)
+                new_initial = value
+                old_initial = getattr(old_lc_instance, name)
+                current = getattr(self.looper, name)
+                self.objects_to_update.append(
+                    (current, old_initial, new_initial))
             else:
                 try:
                     if value != vars(old_lc_instance)[name]:
@@ -208,11 +223,13 @@ class Reloader(threading.Thread):
                     m = self._cached_reloader.get_module(inspect.getmodule(v))
                     new_v = m.__getattribute__(v.__name__)
                     self.looper.loop_body.func_globals[k] = new_v
-                elif isinstance(v, types.InstanceType):
+                elif is_user_class(v):
+                    # TODO: Should it ever get here?
+                    #       If so what do we do?
                     logging.debug(value)
 
-        for obj in self.objects_to_update:
-            self._update_object(obj)
+        for stuff in self.objects_to_update:
+            self._update_object(*stuff)
 
     def _loop(self):
         while self.running:
