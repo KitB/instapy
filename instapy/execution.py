@@ -1,5 +1,7 @@
 import importlib
+import logging
 import sys
+import time
 
 from instapy import gui
 from instapy import reloader
@@ -35,8 +37,13 @@ def run_game(game_instance):
     game_reloader.start()
     reloader_server.start()
 
-    try:
-        game_reloader.join()
-    except KeyboardInterrupt:
-        game_reloader.running = False
-        game_reloader.join()
+    #game_reloader.join()
+    while True:
+        try:
+            time.sleep(0.1)
+        except KeyboardInterrupt:
+            logging.info("Caught keyboard interrupt, exiting cleanly...")
+            break
+    game_reloader.running = False
+    game_reloader.join()
+    logging.info("Done cleaning up, exit now")

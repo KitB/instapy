@@ -116,7 +116,7 @@ class Reloader(threading.Thread):
             self.looper.init_once()
             self.looper.init()
             self._loop()
-        logging.info("Thread exit")
+        logging.info("Reloader finished")
 
     def _update_object(self, obj):
         logging.debug("Updating (%s)" % obj)
