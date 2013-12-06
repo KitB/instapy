@@ -10,6 +10,7 @@ original_object = object
 class TrackingMeta(type):
     def __call__(cls, *args, **kwargs):
         i = type.__call__(cls, *args, **kwargs)
+        i.__initial_arguments__ = (args, kwargs)
         return i
 
 
