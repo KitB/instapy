@@ -10,8 +10,6 @@ import types
 
 import pygame
 
-from instapy import inject
-
 
 def load_module(fqname):
     """Return an imported module without filling sys.modules."""
@@ -122,11 +120,10 @@ class Reloader(threading.Thread):
         self.restarted = True
 
     def run(self):
-        with inject.ReplacedContext():
-            self.running = True
-            self.looper.init_once()
-            self.looper.init()
-            self._loop()
+        self.running = True
+        self.looper.init_once()
+        self.looper.init()
+        self._loop()
         logging.info("Reloader finished")
 
     def _loop(self):
