@@ -101,6 +101,15 @@ class ObjectSet(object):
     pass
 
 
+def get_vars_iter(obj):
+    try:
+        for name, value in vars(obj).iteritems():
+            yield (name, value)
+    except TypeError:
+        for name in dir(obj):
+            yield (name, getattr(obj, name))
+
+
 class Reloader(threading.Thread):
     def __init__(self, looper, debug_on_exception=True, *args, **kwargs):
         super(Reloader, self).__init__(*args, **kwargs)
@@ -154,32 +163,52 @@ class Reloader(threading.Thread):
 
         current.__class__ = cls
 
-        for name, value in vars(new_initial).items():
-            if inspect.isroutine(value):
+        def _upd(name, value):
+            logging.debug("%s = %s", name, value)
+            if name == "__class__":
+                return
+            elif inspect.isbuiltin(value):
+                return
+            elif inspect.ismethod(value) \
+                    or value.__class__.__name__ == 'method-wrapper':
+                return
+            elif inspect.isroutine(value):
                 try:
                     if inspect.getsource(value)\
-                       != inspect.getsource(vars(old_initial)[name]):
-                        current.__dict__[name] = value
+                       != inspect.getsource(getattr(old_initial, name)):
+                        setattr(current, name, value)
                 except KeyError:
                     # New function
                     logging.debug("KeyError")
-                    current.__dict__[name] = value
+                    setattr(current, name, value)
             elif is_user_class(value):
+                logging.debug("User class")
                 current_sub = getattr(current, name)
                 old_initial_sub = getattr(old_initial, name)
                 new_initial_sub = value
-                self.objects_to_update.append(
+                logging.debug("Adding to frontier:\n\t"
+                              "Old:     %s\n\t"
+                              "Current: %s\n\t"
+                              "New:     %s",
+                              old_initial_sub, current_sub, new_initial_sub)
+                self.objects_to_update.add(
                     (current_sub, old_initial_sub, new_initial_sub))
             else:
                 try:
                     if value != getattr(old_initial, name):
                         logging.debug("%s %s, %s", name, value,
                                       getattr(old_initial, name))
-                        current.__dict__[name] = value
+                        setattr(current, name, value)
                 except KeyError:
                     # The property is a new one
                     logging.debug("property KeyError")
-                    current.__dict__[name] = value
+                    setattr(current, name, value)
+                except AttributeError:
+                    # Just trying this to squash funny bits with pygame.Color
+                    pass
+
+        for name, value in get_vars_iter(new_initial):
+            _upd(name, value)
 
     def _do_update(self):
         # TODO: Unify the update methods for looper instance and other objects
@@ -189,7 +218,7 @@ class Reloader(threading.Thread):
         # Tell the reloader to flush its cache
         self._cached_reloader.new_generation()
 
-        self.objects_to_update = []
+        self.objects_to_update = set()
 
         # Reload the looper class
         m = self._cached_reloader.get_module(inspect.getmodule(self.looper))
@@ -208,29 +237,38 @@ class Reloader(threading.Thread):
                 try:
                     if inspect.getsource(value)\
                        != inspect.getsource(vars(old_lc_instance)[name]):
-                        self.looper.__dict__[name] = value
+                        setattr(self.looper, name, value)
                 except KeyError:
                     # New function
                     logging.debug("KeyError")
-                    self.looper.__dict__[name] = value
+                    setattr(self.looper, name, value)
             elif is_user_class(value):
-                # TODO: implement this
-                logging.debug(value)
                 new_initial = value
-                old_initial = getattr(old_lc_instance, name)
-                current = getattr(self.looper, name)
-                self.objects_to_update.append(
+                try:
+                    old_initial = getattr(old_lc_instance, name)
+                    current = getattr(self.looper, name)
+                except AttributeError:
+                    logging.debug("New initial added:\n\t"
+                                  "New:     %s",
+                                  new_initial)
+                    continue
+                logging.debug("Adding to frontier:\n\t"
+                              "Old:     %s\n\t"
+                              "Current: %s\n\t"
+                              "New:     %s",
+                              old_initial, current, new_initial)
+                self.objects_to_update.add(
                     (current, old_initial, new_initial))
             else:
                 try:
                     if value != vars(old_lc_instance)[name]:
                         logging.debug("%s %s, %s", name, value,
                                       vars(old_lc_instance)[name])
-                        self.looper.__dict__[name] = value
+                        setattr(self.looper, name, value)
                 except KeyError:
                     # The property is a new one
                     logging.debug("property KeyError")
-                    self.looper.__dict__[name] = value
+                    setattr(self.looper, name, value)
         self.looper.__class__ = lc
 
         # Reload the rest
@@ -247,7 +285,10 @@ class Reloader(threading.Thread):
                 elif is_user_class(v):
                     # TODO: Should it ever get here?
                     #       If so what do we do?
-                    logging.debug(value)
+                    # NOTE: It gets here. What do we do?
+                    # logging.debug(value)
+                    pass
 
-        for stuff in self.objects_to_update:
+        while self.objects_to_update:
+            stuff = self.objects_to_update.pop()
             self._update_object(*stuff)
