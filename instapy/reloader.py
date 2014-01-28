@@ -205,6 +205,7 @@ class Reloader(threading.Thread):
                     setattr(current, name, value)
                 except AttributeError:
                     # Just trying this to squash funny bits with pygame.Color
+                    logging.debug("property AttributeError")
                     pass
 
         for name, value in get_vars_iter(new_initial):
@@ -240,7 +241,9 @@ class Reloader(threading.Thread):
                         setattr(self.looper, name, value)
                 except KeyError:
                     # New function
-                    logging.debug("KeyError")
+                    logging.debug("New function added:\n\t"
+                                  "New:     %s",
+                                  name)
                     setattr(self.looper, name, value)
             elif is_user_class(value):
                 new_initial = value
@@ -251,7 +254,6 @@ class Reloader(threading.Thread):
                     logging.debug("New initial added:\n\t"
                                   "New:     %s",
                                   new_initial)
-                    continue
                 logging.debug("Adding to frontier:\n\t"
                               "Old:     %s\n\t"
                               "Current: %s\n\t"
@@ -267,7 +269,9 @@ class Reloader(threading.Thread):
                         setattr(self.looper, name, value)
                 except KeyError:
                     # The property is a new one
-                    logging.debug("property KeyError")
+                    logging.debug("New property:\n\t"
+                                  "New:     %s",
+                                  value)
                     setattr(self.looper, name, value)
         self.looper.__class__ = lc
 
