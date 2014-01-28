@@ -120,7 +120,6 @@ class Game(reloader.Looper):
         self.screen.fill((0, 0, 0))
         self.draw()
         pygame.display.flip()
-        self.clock.tick(60)
 
     def draw(self):
         self.ball.draw(self.screen)
