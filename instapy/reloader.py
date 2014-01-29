@@ -177,7 +177,9 @@ class Reloader(threading.Thread):
                         setattr(current, name, value)
                 except KeyError:
                     # New function
-                    logging.debug("KeyError")
+                    logging.debug("New function added:\n\t"
+                                  "%s:     %s",
+                                  name, value)
                     setattr(current, name, value)
             elif is_user_class(value):
                 logging.debug("User class")
@@ -190,7 +192,8 @@ class Reloader(threading.Thread):
                     logging.debug("New initial added:\n\t"
                                   "New:     %s",
                                   new_initial_sub)
-
+                    setattr(current, name, value)
+                    return
                 logging.debug("Adding to frontier:\n\t"
                               "Old:     %s\n\t"
                               "Current: %s\n\t"
@@ -236,6 +239,7 @@ class Reloader(threading.Thread):
 
         # Reload the initialisation arguments
         for name, value in vars(lc_instance).items():
+            logging.debug("Updating name (%s), value (%s)", name, value)
             if inspect.isroutine(value):
                 try:
                     if inspect.getsource(value)\
@@ -256,6 +260,9 @@ class Reloader(threading.Thread):
                     logging.debug("New initial added:\n\t"
                                   "New:     %s",
                                   new_initial)
+                    # TODO: Make adding new objects work?
+                    setattr(self.looper, name, value)
+                    continue
                 logging.debug("Adding to frontier:\n\t"
                               "Old:     %s\n\t"
                               "Current: %s\n\t"
