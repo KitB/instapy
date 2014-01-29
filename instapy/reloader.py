@@ -98,7 +98,17 @@ class Looper(type):
 
 class ObjectSet(object):
     # TODO: Implement a set that uses "is" for equality
-    pass
+    def __init__(self):
+        self._d = {}
+
+    def add(self, current, old_initial, new_initial):
+        self._d[id(current)] = (current, old_initial, new_initial)
+
+    def pop(self):
+        return self._d.popitem()[1]
+
+    def __nonzero__(self):
+        return bool(self._d)
 
 
 def get_vars_iter(obj):
@@ -198,7 +208,7 @@ class Reloader(threading.Thread):
                               "New:     %s",
                               old_initial_sub, current_sub, new_initial_sub)
                 self.objects_to_update.add(
-                    (current_sub, old_initial_sub, new_initial_sub))
+                    current_sub, old_initial_sub, new_initial_sub)
             else:
                 try:
                     if value != getattr(old_initial, name):
@@ -229,7 +239,7 @@ class Reloader(threading.Thread):
         # Tell the reloader to flush its cache
         self._cached_reloader.new_generation()
 
-        self.objects_to_update = set()
+        self.objects_to_update = ObjectSet()
 
         # Reload the looper class
         m = self._cached_reloader.get_module(inspect.getmodule(self.looper))
@@ -237,7 +247,7 @@ class Reloader(threading.Thread):
         lc_instance = lc(__instapy_first_run__=False)
         old_lc_instance = self.looper.__class__(__instapy_first_run__=False)
 
-        self.objects_to_update.add((self.looper, old_lc_instance, lc_instance))
+        self.objects_to_update.add(self.looper, old_lc_instance, lc_instance)
         while self.objects_to_update:
             stuff = self.objects_to_update.pop()
             self._update_object(*stuff)
