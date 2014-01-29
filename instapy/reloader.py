@@ -82,18 +82,18 @@ class CachedReloader(object):
             return self.get_module(str_or_module.__name__)
 
 
-class Looper(object):
-    """ Mostly unnecessary at the moment
-        Provides default methods, gives future potential for modifying class
-        behaviours """
-    def init_once(self):
-        pass
-
-    def init(self):
-        pass
-
-    def loop_body(self):
-        pass
+class Looper(type):
+    """ Metaclass that will manage running the __init_once__ method properly"""
+    def __call__(cls, *args, **kwargs):
+        self = cls.__new__(cls, *args, **kwargs)
+        if kwargs.get('__instapy_first_run__', True):
+            self.__init_once__()
+        try:
+            del kwargs['__instapy_first_run__']
+        except KeyError:
+            pass
+        self.__init__(*args, **kwargs)
+        return self
 
 
 class ObjectSet(object):
@@ -130,8 +130,6 @@ class Reloader(threading.Thread):
 
     def run(self):
         self.running = True
-        self.looper.init_once()
-        self.looper.init()
         self._loop()
         logging.info("Reloader finished")
 
@@ -143,7 +141,7 @@ class Reloader(threading.Thread):
                     self._do_update()
                 if self.restarted:
                     self.restarted = False
-                    self.looper.init()
+                    self.looper.__init__()
                 if self.looper.loop_body():
                     self.running = False
             except Exception:
@@ -224,15 +222,10 @@ class Reloader(threading.Thread):
         # Reload the looper class
         m = self._cached_reloader.get_module(inspect.getmodule(self.looper))
         lc = m.__getattribute__(self.looper.__class__.__name__)
-        lc_instance = lc()
-        old_lc_instance = self.looper.__class__()
-
-        # Reload the main function
-        self.looper.loop_body = lc.loop_body.__get__(self.looper, lc)
+        lc_instance = lc(__instapy_first_run__=False)
+        old_lc_instance = self.looper.__class__(__instapy_first_run__=False)
 
         # Reload the initialisation arguments
-        lc_instance.init()
-        old_lc_instance.init()
         for name, value in vars(lc_instance).items():
             if inspect.isroutine(value):
                 try:
