@@ -162,7 +162,7 @@ class Reloader(threading.Thread):
         current.__class__ = cls
 
         def _upd(name, value):
-            logging.debug("%s = %s", name, value)
+            logging.debug("Updating: name (%s), value (%s)", name, value)
             if name == "__class__":
                 return
             elif inspect.isbuiltin(value):
@@ -182,8 +182,6 @@ class Reloader(threading.Thread):
                                   name, value)
                     setattr(current, name, value)
             elif is_user_class(value):
-                logging.debug("User class")
-
                 new_initial_sub = value
                 try:
                     current_sub = getattr(current, name)
@@ -204,8 +202,10 @@ class Reloader(threading.Thread):
             else:
                 try:
                     if value != getattr(old_initial, name):
-                        logging.debug("%s %s, %s", name, value,
-                                      getattr(old_initial, name))
+                        logging.debug("Value of %s changed:\n\t"
+                                      "Old: %s\n\t"
+                                      "New: %s",
+                                      name, getattr(old_initial, name), value)
                         setattr(current, name, value)
                 except KeyError:
                     # The property is a new one
@@ -237,52 +237,10 @@ class Reloader(threading.Thread):
         lc_instance = lc(__instapy_first_run__=False)
         old_lc_instance = self.looper.__class__(__instapy_first_run__=False)
 
-        # Reload the initialisation arguments
-        for name, value in vars(lc_instance).items():
-            logging.debug("Updating name (%s), value (%s)", name, value)
-            if inspect.isroutine(value):
-                try:
-                    if inspect.getsource(value)\
-                       != inspect.getsource(vars(old_lc_instance)[name]):
-                        setattr(self.looper, name, value)
-                except KeyError:
-                    # New function
-                    logging.debug("New function added:\n\t"
-                                  "New:     %s",
-                                  name)
-                    setattr(self.looper, name, value)
-            elif is_user_class(value):
-                new_initial = value
-                try:
-                    old_initial = getattr(old_lc_instance, name)
-                    current = getattr(self.looper, name)
-                except AttributeError:
-                    logging.debug("New initial added:\n\t"
-                                  "New:     %s",
-                                  new_initial)
-                    # TODO: Make adding new objects work?
-                    setattr(self.looper, name, value)
-                    continue
-                logging.debug("Adding to frontier:\n\t"
-                              "Old:     %s\n\t"
-                              "Current: %s\n\t"
-                              "New:     %s",
-                              old_initial, current, new_initial)
-                self.objects_to_update.add(
-                    (current, old_initial, new_initial))
-            else:
-                try:
-                    if value != vars(old_lc_instance)[name]:
-                        logging.debug("%s %s, %s", name, value,
-                                      vars(old_lc_instance)[name])
-                        setattr(self.looper, name, value)
-                except KeyError:
-                    # The property is a new one
-                    logging.debug("New property:\n\t"
-                                  "New:     %s",
-                                  value)
-                    setattr(self.looper, name, value)
-        self.looper.__class__ = lc
+        self.objects_to_update.add((self.looper, old_lc_instance, lc_instance))
+        while self.objects_to_update:
+            stuff = self.objects_to_update.pop()
+            self._update_object(*stuff)
 
         # Reload the rest
         for k, v in self.looper.loop_body.func_globals.items():
@@ -299,9 +257,6 @@ class Reloader(threading.Thread):
                     # TODO: Should it ever get here?
                     #       If so what do we do?
                     # NOTE: It gets here. What do we do?
+                    # NOTE: Of course it gets here.
                     # logging.debug(value)
                     pass
-
-        while self.objects_to_update:
-            stuff = self.objects_to_update.pop()
-            self._update_object(*stuff)
