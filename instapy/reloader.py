@@ -181,9 +181,16 @@ class Reloader(threading.Thread):
                     setattr(current, name, value)
             elif is_user_class(value):
                 logging.debug("User class")
-                current_sub = getattr(current, name)
-                old_initial_sub = getattr(old_initial, name)
+
                 new_initial_sub = value
+                try:
+                    current_sub = getattr(current, name)
+                    old_initial_sub = getattr(old_initial, name)
+                except AttributeError:
+                    logging.debug("New initial added:\n\t"
+                                  "New:     %s",
+                                  new_initial_sub)
+
                 logging.debug("Adding to frontier:\n\t"
                               "Old:     %s\n\t"
                               "Current: %s\n\t"
@@ -199,7 +206,9 @@ class Reloader(threading.Thread):
                         setattr(current, name, value)
                 except KeyError:
                     # The property is a new one
-                    logging.debug("property KeyError")
+                    logging.debug("New property:\n\t"
+                                  "New:     %s",
+                                  value)
                     setattr(current, name, value)
                 except AttributeError:
                     # Just trying this to squash funny bits with pygame.Color
