@@ -1,4 +1,5 @@
 import sys
+import signal
 
 from PySide import QtGui
 
@@ -34,6 +35,7 @@ class MainWindow(QtGui.QMainWindow, basic_ui.Ui_MainWindow):
 
 
 def main(args, handler=None):
+    signal.signal(signal.SIGINT, signal.SIG_DFL)
     app = QtGui.QApplication(args)
     window = MainWindow(handler)
     window.show()
