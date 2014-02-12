@@ -20,6 +20,10 @@ class Server(threading.Thread):
                                                allow_none=True)
         self.server.register_function(self.reloader.update, 'update')
         self.server.register_function(self.reloader.restart, 'restart')
+        self.server.register_function(self.reloader.pause, 'pause')
+        self.server.register_function(self.reloader.unpause, 'unpause')
+        self.server.register_function(self.reloader.toggle_pause,
+                                      'toggle_pause')
 
         self.daemon = True
         self.name = "Server Thread"

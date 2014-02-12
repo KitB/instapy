@@ -1,9 +1,9 @@
 # -*- coding: utf-8 -*-
 
-# Form implementation generated from reading ui file 'resources/basic.ui'
+# Form implementation generated from reading ui file 'basic.ui'
 #
-# Created: Thu Dec  5 21:19:27 2013
-#      by: pyside-uic 0.2.14 running on PySide 1.1.2
+# Created: Wed Feb 12 15:22:43 2014
+#      by: pyside-uic 0.2.15 running on PySide 1.2.1
 #
 # WARNING! All changes made in this file will be lost!
 
@@ -12,7 +12,7 @@ from PySide import QtCore, QtGui
 class Ui_MainWindow(object):
     def setupUi(self, MainWindow):
         MainWindow.setObjectName("MainWindow")
-        MainWindow.resize(363, 48)
+        MainWindow.resize(435, 48)
         sizePolicy = QtGui.QSizePolicy(QtGui.QSizePolicy.Fixed, QtGui.QSizePolicy.Fixed)
         sizePolicy.setHorizontalStretch(0)
         sizePolicy.setVerticalStretch(0)
@@ -21,7 +21,7 @@ class Ui_MainWindow(object):
         self.centralwidget = QtGui.QWidget(MainWindow)
         self.centralwidget.setObjectName("centralwidget")
         self.horizontalLayoutWidget = QtGui.QWidget(self.centralwidget)
-        self.horizontalLayoutWidget.setGeometry(QtCore.QRect(0, 0, 361, 45))
+        self.horizontalLayoutWidget.setGeometry(QtCore.QRect(0, 0, 431, 45))
         self.horizontalLayoutWidget.setObjectName("horizontalLayoutWidget")
         self.horizontalLayout = QtGui.QHBoxLayout(self.horizontalLayoutWidget)
         self.horizontalLayout.setSpacing(5)
@@ -69,6 +69,9 @@ class Ui_MainWindow(object):
         self.restartNow = QtGui.QPushButton(self.horizontalLayoutWidget)
         self.restartNow.setObjectName("restartNow")
         self.horizontalLayout.addWidget(self.restartNow)
+        self.pauseGame = QtGui.QPushButton(self.horizontalLayoutWidget)
+        self.pauseGame.setObjectName("pauseGame")
+        self.horizontalLayout.addWidget(self.pauseGame)
         self.horizontalLayout.setStretch(1, 1)
         MainWindow.setCentralWidget(self.centralwidget)
         self.label_3.setBuddy(self.updateToggle)
@@ -85,4 +88,5 @@ class Ui_MainWindow(object):
         self.label.setText(QtGui.QApplication.translate("MainWindow", "Automatic", None, QtGui.QApplication.UnicodeUTF8))
         self.updateNow.setText(QtGui.QApplication.translate("MainWindow", "Update Now", None, QtGui.QApplication.UnicodeUTF8))
         self.restartNow.setText(QtGui.QApplication.translate("MainWindow", "Restart Now", None, QtGui.QApplication.UnicodeUTF8))
+        self.pauseGame.setText(QtGui.QApplication.translate("MainWindow", "Toggle Execution", None, QtGui.QApplication.UnicodeUTF8))
 

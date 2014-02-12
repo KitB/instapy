@@ -6,7 +6,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>363</width>
+    <width>435</width>
     <height>48</height>
    </rect>
   </property>
@@ -25,11 +25,11 @@
      <rect>
       <x>0</x>
       <y>0</y>
-      <width>361</width>
+      <width>431</width>
       <height>45</height>
      </rect>
     </property>
-    <layout class="QHBoxLayout" name="horizontalLayout" stretch="0,1,0">
+    <layout class="QHBoxLayout" name="horizontalLayout" stretch="0,1,0,0">
      <property name="spacing">
       <number>5</number>
      </property>
@@ -134,6 +134,13 @@
       <widget class="QPushButton" name="restartNow">
        <property name="text">
         <string>Restart Now</string>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="QPushButton" name="pauseGame">
+       <property name="text">
+        <string>Toggle Execution</string>
        </property>
       </widget>
      </item>

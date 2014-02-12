@@ -12,6 +12,7 @@ class MainWindow(QtGui.QMainWindow, basic_ui.Ui_MainWindow):
         self.updateToggle.valueChanged.connect(self.change_update)
         self.updateNow.clicked.connect(self.do_update)
         self.restartNow.clicked.connect(self.do_restart)
+        self.pauseGame.clicked.connect(self.do_pause)
         self.handler = handler
 
     def change_update(self, n):
@@ -27,6 +28,9 @@ class MainWindow(QtGui.QMainWindow, basic_ui.Ui_MainWindow):
 
     def do_restart(self):
         self.handler.reloader.restart()
+
+    def do_pause(self):
+        self.handler.reloader.toggle_pause()
 
 
 def main(args, handler=None):

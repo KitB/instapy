@@ -82,7 +82,7 @@ class CachedReloader(object):
             return self.get_module(str_or_module.__name__)
 
 
-class Looper(type):
+class LooperMeta(type):
     """ Metaclass that will manage running the __init_once__ method properly"""
     def __call__(cls, *args, **kwargs):
         self = cls.__new__(cls, *args, **kwargs)
@@ -94,6 +94,19 @@ class Looper(type):
             pass
         self.__init__(*args, **kwargs)
         return self
+
+
+class Looper(object):
+    __metaclass__ = LooperMeta
+
+    def __init_once__(self):
+        pass
+
+    def __init__(self):
+        pass
+
+    def loop_body(self):
+        pass
 
 
 class ObjectSet(object):
@@ -127,6 +140,7 @@ class Reloader(threading.Thread):
         self.updated = False
         self.restarted = False
         self.running = False
+        self.paused = False
         self.name = "Game Thread"
         self.looper = looper
         self.debug_on_exception = debug_on_exception
@@ -137,6 +151,15 @@ class Reloader(threading.Thread):
 
     def restart(self):
         self.restarted = True
+
+    def pause(self):
+        self.paused = True
+
+    def unpause(self):
+        self.paused = False
+
+    def toggle_pause(self):
+        self.paused = not self.paused
 
     def run(self):
         self.running = True
@@ -152,7 +175,7 @@ class Reloader(threading.Thread):
                 if self.restarted:
                     self.restarted = False
                     self.looper.__init__()
-                if self.looper.loop_body():
+                if (not self.paused) and self.looper.loop_body():
                     self.running = False
             except Exception:
                 traceback.print_exc()
