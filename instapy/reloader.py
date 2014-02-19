@@ -110,12 +110,14 @@ class Looper(object):
 
 
 class ObjectSet(object):
-    # TODO: Implement a set that uses "is" for equality
     def __init__(self):
         self._d = {}
+        self._seen = set()
 
     def add(self, current, old_initial, new_initial):
-        self._d[id(current)] = (current, old_initial, new_initial)
+        if id(current) not in self._seen:
+            self._d[id(current)] = (current, old_initial, new_initial)
+            self._seen.add(id(current))
 
     def pop(self):
         return self._d.popitem()[1]
