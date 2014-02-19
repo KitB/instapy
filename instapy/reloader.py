@@ -1,6 +1,7 @@
 import imp
 import inspect
 import ipdb
+import itertools
 import logging
 import sys
 import threading
@@ -239,12 +240,21 @@ class Reloader(threading.Thread):
                     current_sub, old_initial_sub, new_initial_sub)
             else:
                 try:
-                    if value != getattr(old_initial, name):
-                        logging.debug("Value of %s changed:\n\t"
-                                      "Old: %s\n\t"
-                                      "New: %s",
-                                      name, getattr(old_initial, name), value)
-                        setattr(current, name, value)
+                    try:
+                        new_sequence = value
+                        old_sequence = getattr(old_initial, name)
+                        current_sequence = getattr(current, name)
+                        for (n, o, c) in itertools.izip_longest(
+                                new_sequence, old_sequence, current_sequence):
+                            self.objects_to_update.add(c, o, n)
+                    except TypeError:
+                        if value != getattr(old_initial, name):
+                            logging.debug("Value of %s changed:\n\t"
+                                          "Old: %s\n\t"
+                                          "New: %s",
+                                          name,
+                                          getattr(old_initial, name), value)
+                            setattr(current, name, value)
                 except KeyError:
                     # The property is a new one
                     logging.debug("New property:\n\t"

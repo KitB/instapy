@@ -1,4 +1,5 @@
 from instapy import reloader
+import time
 
 
 class Element(object):
@@ -15,3 +16,4 @@ class Game(reloader.Looper):
 
     def loop_body(self):
         print [e._game is self for e in self.lst]
+        time.sleep(1)
