@@ -182,8 +182,11 @@ class Reloader(threading.Thread):
             except Exception:
                 traceback.print_exc()
                 if self.debug_on_exception:
-                    pygame.event.set_grab(False)
-                    pygame.mouse.set_visible(True)
+                    try:
+                        pygame.event.set_grab(False)
+                        pygame.mouse.set_visible(True)
+                    except:
+                        pass
                     ipdb.post_mortem(sys.exc_info()[2])
                 else:
                     time.sleep(5)
