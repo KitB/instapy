@@ -200,37 +200,40 @@ class Reloader(threading.Thread):
 
         current.__class__ = cls
 
-        def _upd(name, value):
+        def _upd_with_name(name, value):
+            try:
+                o = getattr(old_initial, name)
+            except AttributeError:
+                # Attribute added
+                pass
+
+            try:
+                n = getattr(new_initial, name)
+            except AttributeError:
+                # Attribute removed
+                pass
+
+            _upd(value, o, n)
+
+        def _upd(current_sub, old_initial_sub, new_initial_sub):
             logging.debug("Updating: name (%s), value (%s)", name, value)
             if name == "__class__":
                 return
+
             elif inspect.isbuiltin(value):
                 return
+
             elif inspect.ismethod(value) \
                     or value.__class__.__name__ == 'method-wrapper':
                 return
+
             elif inspect.isroutine(value):
-                try:
-                    if inspect.getsource(value)\
-                       != inspect.getsource(getattr(old_initial, name)):
-                        setattr(current, name, value)
-                except KeyError:
-                    # New function
-                    logging.debug("New function added:\n\t"
-                                  "%s:     %s",
-                                  name, value)
+                if inspect.getsource(value)\
+                   != inspect.getsource(old_initial_sub):
                     setattr(current, name, value)
+
             elif is_user_class(value):
                 new_initial_sub = value
-                try:
-                    current_sub = getattr(current, name)
-                    old_initial_sub = getattr(old_initial, name)
-                except AttributeError:
-                    logging.debug("New initial added:\n\t"
-                                  "New:     %s",
-                                  new_initial_sub)
-                    setattr(current, name, value)
-                    return
                 logging.debug("Adding to frontier:\n\t"
                               "Old:     %s\n\t"
                               "Current: %s\n\t"
@@ -238,41 +241,27 @@ class Reloader(threading.Thread):
                               old_initial_sub, current_sub, new_initial_sub)
                 self.objects_to_update.add(
                     current_sub, old_initial_sub, new_initial_sub)
+
             else:
                 try:
-                    try:
-                        new_sequence = value
-                        old_sequence = getattr(old_initial, name)
-                        current_sequence = getattr(current, name)
-                        for (n, o, c) in itertools.izip_longest(
-                                new_sequence, old_sequence, current_sequence):
+                    print current_sub, old_initial_sub, new_initial_sub
+                    for i, (c, o, n) in enumerate(itertools.izip_longest(
+                            current_sub, old_initial_sub, new_initial_sub)):
+                        if is_user_class(c):
                             self.objects_to_update.add(c, o, n)
-                    except TypeError:
-                        if value != getattr(old_initial, name):
-                            logging.debug("Value of %s changed:\n\t"
-                                          "Old: %s\n\t"
-                                          "New: %s",
-                                          name,
-                                          getattr(old_initial, name), value)
-                            setattr(current, name, value)
-                except KeyError:
-                    # The property is a new one
-                    logging.debug("New property:\n\t"
-                                  "New:     %s",
-                                  value)
-                    setattr(current, name, value)
+                        else:
+                            getattr(current, name)[i] = n
                 except AttributeError:
                     # Just trying this to squash funny bits with pygame.Color
                     logging.debug("property AttributeError")
                     pass
+                except TypeError:
+                    pass
 
         for name, value in get_vars_iter(new_initial):
-            _upd(name, value)
+            _upd_with_name(name, value)
 
     def _do_update(self):
-        # TODO: Unify the update methods for looper instance and other objects
-        # TODO: Replace the init method with an __init__ method; replace
-        #       init_once with __init_once__
         logging.debug("Updating")
         # Tell the reloader to flush its cache
         self._cached_reloader.new_generation()

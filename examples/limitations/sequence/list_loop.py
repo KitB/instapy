@@ -13,7 +13,9 @@ class Game(reloader.Looper):
 
     def __init__(self):
         self.lst = [Element(self), Element(self)]
+        self.pair = [20, 21]
 
     def loop_body(self):
         print [e._game is self for e in self.lst]
+        print self.pair
         time.sleep(1)
