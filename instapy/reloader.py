@@ -117,6 +117,11 @@ class ObjectSet(object):
 
     def add(self, current, old_initial, new_initial):
         if id(current) not in self._seen:
+            logging.debug("Adding to frontier:\n\t"
+                          "Old:     %s\n\t"
+                          "Current: %s\n\t"
+                          "New:     %s",
+                          old_initial, current, new_initial)
             self._d[id(current)] = (current, old_initial, new_initial)
             self._seen.add(id(current))
 
@@ -175,6 +180,7 @@ class Reloader(threading.Thread):
                 if self.updated:
                     self.updated = False
                     self._do_update()
+                    self._do_update()  # Yes we do this twice. Don't ask.
                 if self.restarted:
                     self.restarted = False
                     self.looper.__init__()
@@ -236,19 +242,24 @@ class Reloader(threading.Thread):
                     setattr(current, name, current_sub)
 
             elif is_user_class(current_sub):
-                logging.debug("Adding to frontier:\n\t"
-                              "Old:     %s\n\t"
-                              "Current: %s\n\t"
-                              "New:     %s",
-                              old_initial_sub, current_sub, new_initial_sub)
+                try:
+                    current_sub.__instapy_update__(old_initial_sub,
+                                                   new_initial_sub)
+                except AttributeError:
+                    pass
                 self.objects_to_update.add(
                     current_sub, old_initial_sub, new_initial_sub)
 
             else:
                 try:
+                    if name == "asteroids":
+                        print current_sub
                     if is_user_class(current_sub[0]):
+                        if name == "asteroids":
+                            print "Is object"
                         for c, o, n in itertools.izip_longest(
                                 current_sub, old_initial_sub, new_initial_sub):
+                                print "Adding %s, %s, %s" % (c, o, n)
                                 self.objects_to_update.add(c, o, n)
                     else:
                         raise TypeError()
@@ -277,23 +288,16 @@ class Reloader(threading.Thread):
         # Reload the looper class
         m = self._cached_reloader.get_module(inspect.getmodule(self.looper))
         lc = m.__getattribute__(self.looper.__class__.__name__)
-        new_lc_instance = lc(__instapy_first_run__=False)
         old_lc_instance = self.looper.__class__(__instapy_first_run__=False)
-
-        self.objects_to_update.add(self.looper,
-                                   old_lc_instance,
-                                   new_lc_instance)
-        while self.objects_to_update:
-            stuff = self.objects_to_update.pop()
-            self._update_object(*stuff)
 
         # Reload the rest
         for k, v in self.looper.loop_body.func_globals.items():
             if k != "__builtins__":
                 if isinstance(v, types.ModuleType):
                     if not v.__name__.startswith("pygame"):
-                        self.looper.loop_body.func_globals[k] =\
-                            self._cached_reloader.get_module(v)
+                        m = self._cached_reloader.get_module(v)
+                        self.looper.loop_body.func_globals[k] = m
+                        sys.modules[v.__name__] = m
                 elif isinstance(v, types.FunctionType):
                     m = self._cached_reloader.get_module(inspect.getmodule(v))
                     new_v = m.__getattribute__(v.__name__)
@@ -306,3 +310,12 @@ class Reloader(threading.Thread):
                     # method
                     # logging.debug(value)
                     pass
+
+        new_lc_instance = lc(__instapy_first_run__=False)
+
+        self.objects_to_update.add(self.looper,
+                                   old_lc_instance,
+                                   new_lc_instance)
+        while self.objects_to_update:
+            stuff = self.objects_to_update.pop()
+            self._update_object(*stuff)
