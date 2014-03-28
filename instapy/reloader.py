@@ -193,47 +193,49 @@ class Reloader(threading.Thread):
                     time.sleep(5)
 
     def _update_object(self, current, old_initial, new_initial):
-        logging.debug("Updating (%s)" % current)
+        # TODO: Add namespaces to everything instead of needing to know the
+        # method of access (namespace.set(...)
+        # Or perhaps some wrapper around all objects that allows me to replace
+        # the object in place.
+        logging.debug("Updating (%s, %s, %s)",
+                      current,
+                      old_initial,
+                      new_initial)
 
         m = self._cached_reloader.get_module(inspect.getmodule(current))
         cls = m.__getattribute__(current.__class__.__name__)
 
         current.__class__ = cls
 
-        def _upd_with_name(name, value):
+        def _upd_with_name(name, n):
             try:
                 o = getattr(old_initial, name)
+                c = getattr(current, name)
             except AttributeError:
                 # Attribute added
-                pass
+                setattr(current, name, n)
+                return
 
-            try:
-                n = getattr(new_initial, name)
-            except AttributeError:
-                # Attribute removed
-                pass
-
-            _upd(value, o, n)
+            _upd(c, o, n)
 
         def _upd(current_sub, old_initial_sub, new_initial_sub):
-            logging.debug("Updating: name (%s), value (%s)", name, value)
+            logging.debug("Updating: name (%s), value (%s)", name, current_sub)
             if name == "__class__":
                 return
 
-            elif inspect.isbuiltin(value):
+            elif inspect.isbuiltin(current_sub):
                 return
 
-            elif inspect.ismethod(value) \
-                    or value.__class__.__name__ == 'method-wrapper':
+            elif inspect.ismethod(current_sub) \
+                    or current_sub.__class__.__name__ == 'method-wrapper':
                 return
 
-            elif inspect.isroutine(value):
-                if inspect.getsource(value)\
+            elif inspect.isroutine(current_sub):
+                if inspect.getsource(current_sub)\
                    != inspect.getsource(old_initial_sub):
-                    setattr(current, name, value)
+                    setattr(current, name, current_sub)
 
-            elif is_user_class(value):
-                new_initial_sub = value
+            elif is_user_class(current_sub):
                 logging.debug("Adding to frontier:\n\t"
                               "Old:     %s\n\t"
                               "Current: %s\n\t"
@@ -244,19 +246,23 @@ class Reloader(threading.Thread):
 
             else:
                 try:
-                    print current_sub, old_initial_sub, new_initial_sub
-                    for i, (c, o, n) in enumerate(itertools.izip_longest(
-                            current_sub, old_initial_sub, new_initial_sub)):
-                        if is_user_class(c):
-                            self.objects_to_update.add(c, o, n)
-                        else:
-                            getattr(current, name)[i] = n
+                    if is_user_class(current_sub[0]):
+                        for c, o, n in itertools.izip_longest(
+                                current_sub, old_initial_sub, new_initial_sub):
+                                self.objects_to_update.add(c, o, n)
+                    else:
+                        raise TypeError()
                 except AttributeError:
                     # Just trying this to squash funny bits with pygame.Color
                     logging.debug("property AttributeError")
                     pass
-                except TypeError:
+                except IndexError:
+                    # It was empty, now what?
                     pass
+                except TypeError:
+                    # It's a value type
+                    if old_initial_sub != new_initial_sub:
+                        setattr(current, name, new_initial_sub)
 
         for name, value in get_vars_iter(new_initial):
             _upd_with_name(name, value)
@@ -271,10 +277,12 @@ class Reloader(threading.Thread):
         # Reload the looper class
         m = self._cached_reloader.get_module(inspect.getmodule(self.looper))
         lc = m.__getattribute__(self.looper.__class__.__name__)
-        lc_instance = lc(__instapy_first_run__=False)
+        new_lc_instance = lc(__instapy_first_run__=False)
         old_lc_instance = self.looper.__class__(__instapy_first_run__=False)
 
-        self.objects_to_update.add(self.looper, old_lc_instance, lc_instance)
+        self.objects_to_update.add(self.looper,
+                                   old_lc_instance,
+                                   new_lc_instance)
         while self.objects_to_update:
             stuff = self.objects_to_update.pop()
             self._update_object(*stuff)
@@ -294,6 +302,7 @@ class Reloader(threading.Thread):
                     # TODO: Should it ever get here?
                     #       If so what do we do?
                     # NOTE: It gets here. What do we do?
-                    # NOTE: Of course it gets here.
+                    # NOTE: Of course it gets here. `self` is local to every
+                    # method
                     # logging.debug(value)
                     pass

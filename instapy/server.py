@@ -35,4 +35,5 @@ class Server(threading.Thread):
 
 def get_reloader_proxy(address="http://%s:%d" % (DEFAULT_HOST, DEFAULT_PORT),
                        *args, **kwargs):
-        return xmlrpclib.ServerProxy(address, *args, allow_none=True, **kwargs)
+    """ To be used in clients, gives them a proxy object to use """
+    return xmlrpclib.ServerProxy(address, *args, allow_none=True, **kwargs)
