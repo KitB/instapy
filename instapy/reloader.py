@@ -212,6 +212,10 @@ class Reloader(threading.Thread):
         cls = m.__getattribute__(current.__class__.__name__)
 
         current.__class__ = cls
+        try:
+            current.__instapy_update__(old_initial, new_initial)
+        except AttributeError:
+            pass
 
         def _upd_with_name(name, n):
             try:
@@ -242,24 +246,14 @@ class Reloader(threading.Thread):
                     setattr(current, name, current_sub)
 
             elif is_user_class(current_sub):
-                try:
-                    current_sub.__instapy_update__(old_initial_sub,
-                                                   new_initial_sub)
-                except AttributeError:
-                    pass
                 self.objects_to_update.add(
                     current_sub, old_initial_sub, new_initial_sub)
 
             else:
                 try:
-                    if name == "asteroids":
-                        print current_sub
                     if is_user_class(current_sub[0]):
-                        if name == "asteroids":
-                            print "Is object"
                         for c, o, n in itertools.izip_longest(
                                 current_sub, old_initial_sub, new_initial_sub):
-                                print "Adding %s, %s, %s" % (c, o, n)
                                 self.objects_to_update.add(c, o, n)
                     else:
                         raise TypeError()
