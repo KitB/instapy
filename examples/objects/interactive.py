@@ -1,6 +1,6 @@
 import pygame
-from pygame.locals import K_s, K_w, K_a, K_d, KEYDOWN, K_SPACE, MOUSEBUTTONDOWN,\
-                          MOUSEBUTTONUP, MOUSEMOTION
+from pygame.locals import (K_s, K_w, K_a, K_d, KEYDOWN, K_SPACE,
+                           MOUSEBUTTONDOWN, MOUSEBUTTONUP, MOUSEMOTION)
 from instapy import reloader
 from math import sqrt
 
@@ -27,8 +27,10 @@ class Ball(object):
             self.mouse_done = False
             self.velocity = vector_subtract(self.pos, self.old_pos, dt * 3)
             print self.velocity
-        self.pos = [a + (b * dt_seconds) for (a, b) in zip(self.pos, self.velocity)]
-        self.velocity = [n * (1 - (self.game.damping * dt_seconds)) for n in self.velocity]
+        self.pos = [a + (b * dt_seconds)
+                    for (a, b) in zip(self.pos, self.velocity)]
+        self.velocity = [n * (1 - (self.game.damping * dt_seconds))
+                         for n in self.velocity]
         self.velocity[1] += self.game.gravity * dt_seconds
 
         if self.pos[1] > 640 - self.radius:
@@ -63,12 +65,12 @@ class Ball(object):
 
 
 class Game(reloader.Looper):
-    def init_once(self):
+    def __init_once__(self):
         pygame.init()
         self.screen = pygame.display.set_mode((640, 640))
         self.clock = pygame.time.Clock()
 
-    def init(self):
+    def __init__(self):
         self.purple = (188, 0, 198)
 
         self.gravity = 4900
