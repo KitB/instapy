@@ -31,8 +31,7 @@ class Ball(object):
                     for (a, b) in zip(self.pos, self.velocity)]
         self.velocity = [n * (1 - (self.game.damping * dt_seconds))
                          for n in self.velocity]
-        self.velocity[0] += self.game.gravity[0] * dt_seconds
-        self.velocity[1] += self.game.gravity[1] * dt_seconds
+        self.velocity[1] += self.game.gravity * dt_seconds
 
         if self.pos[1] > 640 - self.radius:
             self.pos[1] = 640 - self.radius
@@ -74,10 +73,10 @@ class Game(reloader.Looper):
     def __init__(self):
         self.purple = (188, 0, 198)
 
-        self.gravity = [0, 4900]
+        self.gravity = 4900
         self.jump = 1900
         self.move = 900
-        self.radius = 50
+        self.radius = 100
         self.damping = 0.8
         self.elasticity = 0.7
 
