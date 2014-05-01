@@ -177,15 +177,22 @@ class Reloader(threading.Thread):
     def _loop(self):
         while self.running:
             try:
-                if self.updated:
-                    self.updated = False
-                    self._do_update()
-                    self._do_update()  # Yes we do this twice. Don't ask.
-                if self.restarted:
-                    self.restarted = False
-                    self.looper.__init__()
-                if (not self.paused) and self.looper.loop_body():
-                    self.running = False
+                    if self.updated:
+                        self.updated = False
+                        n = 100
+                        while n > 0:
+                            n -= 1
+                            try:
+                                self._do_update()
+                                self._do_update()  # Yes we do this twice. Don't ask.
+                                break
+                            except SyntaxError:
+                                pass
+                    if self.restarted:
+                        self.restarted = False
+                        self.looper.__init__()
+                    if (not self.paused) and self.looper.loop_body():
+                        self.running = False
             except Exception:
                 traceback.print_exc()
                 if self.debug_on_exception:
